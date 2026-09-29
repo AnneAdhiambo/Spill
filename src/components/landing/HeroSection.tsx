@@ -52,7 +52,13 @@ export default function HeroSection() {
         </div>
 
         <div className="hero-actions">
-          <button className="primary-button large" type="button">
+          <button
+            className="primary-button large"
+            type="button"
+            onClick={() => {
+              window.location.pathname = "/get-started";
+            }}
+          >
             Get Started <span aria-hidden="true">→</span>
           </button>
 
