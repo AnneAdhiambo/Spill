@@ -16,7 +16,7 @@ export default function WelcomeStep({
       <p className="eyebrow">Your identity. Your control.</p>
       <h1>Get started with Spill</h1>
       <p className="identity-subtext">
-        Spill runs on Nostr — you hold your own key, not us. Create a new
+        Spill runs on Nostr. You hold your own key, not us. Create a new
         identity or bring one you already have.
       </p>
 
