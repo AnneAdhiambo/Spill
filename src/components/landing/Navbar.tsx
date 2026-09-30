@@ -41,10 +41,22 @@ export default function Navbar() {
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
-        <button className="secondary-button compact" type="button">
+        <button
+          className="secondary-button compact"
+          type="button"
+          onClick={() => {
+            window.location.pathname = "/get-started"
+          }}
+        >
           Sign in
         </button>
-        <button className="primary-button compact" type="button">
+        <button
+          className="primary-button compact"
+          type="button"
+          onClick={() => {
+            window.location.pathname = "/get-started"
+          }}
+        >
           Get Started
         </button>
       </div>
