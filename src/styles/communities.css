@@ -217,6 +217,73 @@
 .promo-card { border-radius: 22px; overflow: hidden; border: 1px solid #2a1e18; }
 .promo-card img { width: 100%; height: auto; }
 
+/* Discovery Card Styles */
+.community-discovery-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  outline: none;
+}
+.community-discovery-card:hover, .community-discovery-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  border-color: rgba(255, 90, 43, 0.3);
+}
+.community-card-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.community-info h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  line-height: 1.15;
+}
+.community-info strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.community-info p {
+  margin: 0;
+  color: var(--text);
+  opacity: 0.85;
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 480px;
+}
+.community-card-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.passcode-entry-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.passcode-entry-inline input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+}
+.error-message-small {
+  color: var(--brand-red);
+  font-size: 12px;
+  font-weight: 500;
+}
+
 @media (max-width: 1280px) {
   .communities-layout { grid-template-columns: 1fr; }
   .community-sidebar { order: 2; }
@@ -247,6 +314,24 @@
   .report-excerpt { font-size: 15px; }
   .community-list-item { flex-direction: column; }
   .community-list-item button { margin-left: 71px; }
+
+  /* Discovery Card Mobile */
+  .community-card-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .community-card-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+  .community-card-actions button {
+    width: 100%;
+    min-height: 48px;
+  }
+  .passcode-entry-inline {
+    align-items: stretch;
+  }
 }
 
 :root[data-theme="dark"] .communities-page {
