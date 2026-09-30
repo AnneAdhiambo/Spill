@@ -1,0 +1,6 @@
+allowBuilds:
+  msw: true
+  sharp: true
+packages:
+  - "apps/*"
+  - "packages/*"

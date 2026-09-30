@@ -1,0 +1,29 @@
+{
+  "name": "@blocktek/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "start": "tsx src/main.ts",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@blocktek/ai": "workspace:*",
+    "@blocktek/midnight": "workspace:*",
+    "@blocktek/types": "workspace:*",
+    "@fastify/cors": "^11.0.1",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.6.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.20.5",
+    "typescript": "5.7.3"
+  }
+}
