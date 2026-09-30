@@ -32,7 +32,7 @@ export default function SetPasscodeStep({ onSubmit, onBack, submitting }: SetPas
       <h1>Set a passcode</h1>
       <p className="identity-subtext">
         This encrypts your key on this device. It's separate from your
-        recovery phrase — if you forget it, your recovery phrase is the only
+        recovery phrase. If you forget it, your recovery phrase is the only
         way back in.
       </p>
 

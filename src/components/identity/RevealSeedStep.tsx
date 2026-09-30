@@ -17,7 +17,7 @@ export default function RevealSeedStep({ mnemonic, onContinue, onBack }: RevealS
       <p className="identity-subtext">
         These 12 words are the only way to recover your account. Anyone who
         has them can access your identity. Write them down and keep them
-        somewhere private and offline — we cannot recover them for you.
+        somewhere private and offline. We cannot recover them for you.
       </p>
 
       <ol className="seed-grid">
