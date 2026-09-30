@@ -4,7 +4,7 @@ import { useTheme } from "../../hooks/useTheme"
 const links = [
   { label: "Home", href: "/" },
   { label: "About", href: "/#about" },
-  { label: "Community", href: "/communities" },
+  { label: "Communities", href: "/communities" },
   { label: "Space", href: "/space" },
   { label: "Radio", href: "/radio" },
 ]
@@ -24,7 +24,7 @@ export default function TopNavbar() {
           <a
             key={link.label}
             href={link.href}
-            className={link.label === "Community" ? "active" : ""}
+            className={link.label === "Communities" ? "active" : ""}
           >
             {link.label}
           </a>

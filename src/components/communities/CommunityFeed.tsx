@@ -1,13 +1,14 @@
 import type { ReportItem } from "../../data/communityReports";
+import type { CommunityPost } from "../../services/nostr/communityService";
 import ReportCard from "./ReportCard";
 
 type CommunityFeedProps = {
-  reports: ReportItem[];
+  reports: (ReportItem | CommunityPost)[];
 };
 
 export default function CommunityFeed({ reports }: CommunityFeedProps) {
   if (reports.length === 0) {
-    return <p className="empty-feed">No reports have been shared in this community yet.</p>;
+    return <p className="empty-feed">No posts have been shared in this community yet.</p>;
   }
 
   return (

@@ -1,9 +1,15 @@
 import { Camera, Heart, Leaf, Users, UsersRound } from "lucide-react"
-import { communities } from "../../data/communityReports"
+import type { Community } from "../../services/nostr/communityService"
 
 const icons = [Users, Heart, Camera, Leaf, UsersRound]
 
-export default function CommunitySidebar() {
+type CommunitySidebarProps = {
+  communities: Community[];
+  activeCommunityId: string | null;
+  onSelectCommunity: (id: string) => void;
+};
+
+export default function CommunitySidebar({ communities, activeCommunityId, onSelectCommunity }: CommunitySidebarProps) {
   return (
     <aside className="community-sidebar">
       <section className="sidebar-card">
@@ -14,9 +20,15 @@ export default function CommunitySidebar() {
 
         <div className="community-list">
           {communities.map((community, index) => {
-            const Icon = icons[index] ?? Users
+            const Icon = icons[index % icons.length] ?? Users;
+            const isActive = community.id === activeCommunityId;
             return (
-              <div className="community-list-item" key={community.name}>
+              <div 
+                className={`community-list-item ${isActive ? "active" : ""}`} 
+                key={community.id}
+                onClick={() => onSelectCommunity(community.id)}
+                style={{ cursor: "pointer", backgroundColor: isActive ? "var(--bg-elevated)" : undefined }}
+              >
                 <div className="community-icon-wrap">
                   <span className={`community-icon tone-${community.tone}`}>
                     <Icon size={22} />
@@ -27,7 +39,6 @@ export default function CommunitySidebar() {
                     <p>{community.description}</p>
                   </div>
                 </div>
-                <button type="button">Join</button>
               </div>
             )
           })}
