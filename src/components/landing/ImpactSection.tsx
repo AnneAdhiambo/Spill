@@ -36,7 +36,13 @@ export default function ImpactSection() {
         aria-hidden="true"
       />
 
-      <button className="primary-button impact-button" type="button">
+      <button
+        className="primary-button impact-button"
+        type="button"
+        onClick={() => {
+          window.location.pathname = "/get-started"
+        }}
+      >
         Join the Movement <span aria-hidden="true">→</span>
       </button>
     </section>
