@@ -1,20 +1,16 @@
 import { Moon, Sun } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useTheme } from "../../hooks/useTheme"
 
 const links = [
   { label: "Home", href: "/" },
   { label: "About", href: "/#about" },
   { label: "Community", href: "/communities" },
-  { label: "Radio", href: "/#radio" },
+  { label: "Space", href: "/space" },
+  { label: "Radio", href: "/radio" },
 ]
 
 export default function Navbar() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-  }, [theme])
-
+  const { theme, toggleTheme } = useTheme()
   const isDark = theme === "dark"
 
   return (
@@ -41,7 +37,7 @@ export default function Navbar() {
           type="button"
           aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
           aria-pressed={!isDark}
-          onClick={() => setTheme(isDark ? "light" : "dark")}
+          onClick={toggleTheme}
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>

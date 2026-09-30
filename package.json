@@ -5,15 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:token": "node --env-file-if-exists=.env.local server/livekit-token-server.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.24",
     "@noble/hashes": "^2.4.0",
     "@scure/bip32": "^2.4.0",
     "bip39": "^3.1.0",
     "buffer": "^6.0.3",
+    "livekit-client": "^2.22.3",
+    "livekit-server-sdk": "^2.19.1",
     "lucide-react": "^0.468.0",
     "nostr-tools": "^2.25.2",
     "react": "^19.1.0",
