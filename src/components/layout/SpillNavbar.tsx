@@ -9,44 +9,40 @@ const links = [
   { label: "Radio", href: "/radio" },
 ]
 
-export default function Navbar() {
+type SpillNavbarProps = {
+  activeLink: "Space" | "Radio"
+}
+
+export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === "dark"
 
   return (
-    <header className="site-header">
-      <a className="brand" href="/" aria-label="Spill home">
+    <header className="spill-navbar">
+      <a href="/" className="spill-brand" aria-label="Spill home">
         <img src="/assets/spill-logo.png" alt="Spill" />
       </a>
 
-      <nav className="desktop-nav" aria-label="Primary navigation">
-        {links.map((link, index) => (
-          <a
-            className={index === 0 ? "active" : ""}
-            href={link.href}
-            key={link.label}
-          >
+      <nav aria-label="Primary navigation" className="spill-nav-links">
+        {links.map((link) => (
+          <a key={link.label} className={link.label === activeLink ? "active" : ""} href={link.href}>
             {link.label}
           </a>
         ))}
       </nav>
 
-      <div className="header-actions">
+      <div className="spill-nav-actions">
         <button
-          className="icon-button"
+          className="sun-button"
           type="button"
           aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
           aria-pressed={!isDark}
           onClick={toggleTheme}
         >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          {isDark ? <Sun size={19} /> : <Moon size={19} />}
         </button>
-        <button className="secondary-button compact" type="button">
-          Sign in
-        </button>
-        <button className="primary-button compact" type="button">
-          Get Started
-        </button>
+        <button className="nav-outline-button" type="button">Sign in</button>
+        <button className="nav-gradient-button" type="button">Get Started</button>
       </div>
     </header>
   )

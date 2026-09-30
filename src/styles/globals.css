@@ -119,6 +119,10 @@ img {
   color: rgba(255, 255, 255, 0.92);
 }
 
+.desktop-nav a:last-child {
+  margin-left: clamp(20px, 2vw, 36px);
+}
+
 .desktop-nav a.active::after {
   content: "";
   position: absolute;
@@ -206,10 +210,20 @@ img {
   margin: 0;
   max-width: 650px;
   color: #fff;
-  font-size: clamp(48px, 4.2vw, 68px);
+  font-size: clamp(42px, 3.5vw, 58px);
   line-height: 0.99;
   letter-spacing: -0.045em;
   font-weight: 900;
+}
+
+.hero-tagline {
+  margin: 14px 0 16px;
+  color: #ff7a1a;
+  font-size: clamp(19px, 1.6vw, 27px);
+  font-style: italic;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
 }
 
 .gradient-text {
@@ -247,7 +261,7 @@ img {
   display: flex;
   align-items: center;
   gap: 31px;
-  margin: 20px 0 27px;
+  margin: 32px 0 27px;
 }
 
 .trust-item {
@@ -318,18 +332,21 @@ img {
 .feature-strip {
   position: relative;
   z-index: 30;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
   min-height: 116px;
   margin-top: -20px;
-  padding: 22px 34px;
+  padding: 22px clamp(24px, 4.4vw, 84px);
   display: grid;
-  grid-template-columns: 1fr 1fr 1.35fr 1.05fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   color: white;
   background:
     radial-gradient(circle at 10% 40%, rgba(255, 97, 36, 0.07), transparent 16%),
     linear-gradient(180deg, #171513 0%, #11100f 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 19px;
+  border-radius: 0;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.2);
 }
 
@@ -397,7 +414,7 @@ img {
   background: linear-gradient(135deg, #fbfaf8, #f4f9f5);
 }
 
-.radio-card {
+.space-card {
   background: linear-gradient(135deg, #fffaf7, #fff1f1);
 }
 
@@ -454,7 +471,7 @@ img {
   margin-right: 5px;
 }
 
-.radio-visual {
+.space-visual {
   max-width: 196px;
   margin-right: 10px;
 }
@@ -535,7 +552,6 @@ img {
 @media (max-width: 1250px) {
   .site-header,
   .hero-content,
-  .feature-strip,
   .product-highlights,
   .impact-section {
     width: min(1150px, calc(100% - 38px));
@@ -611,7 +627,7 @@ img {
   }
 
   .hero-copy h1 {
-    font-size: clamp(46px, 9vw, 68px);
+    font-size: clamp(42px, 7.5vw, 56px);
   }
 
   .hero-description {
@@ -651,7 +667,6 @@ img {
 @media (max-width: 650px) {
   .site-header,
   .hero-content,
-  .feature-strip,
   .product-highlights,
   .impact-section {
     width: calc(100% - 24px);
@@ -689,7 +704,11 @@ img {
   }
 
   .hero-copy h1 {
-    font-size: 47px;
+    font-size: 40px;
+  }
+
+  .hero-tagline {
+    font-size: 19px;
   }
 
   .hero-description {

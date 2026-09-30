@@ -1,13 +1,18 @@
-import { Settings2 } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "../../hooks/useTheme"
 
 const links = [
   { label: "Home", href: "/" },
   { label: "About", href: "/#about" },
   { label: "Community", href: "/communities" },
-  { label: "Radio", href: "/#radio" },
+  { label: "Space", href: "/space" },
+  { label: "Radio", href: "/radio" },
 ]
 
 export default function TopNavbar() {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === "dark"
+
   return (
     <header className="top-navbar">
       <a className="brand-logo" href="/" aria-label="Spill home">
@@ -27,8 +32,14 @@ export default function TopNavbar() {
       </nav>
 
       <div className="navbar-actions">
-        <button className="icon-circle" type="button" aria-label="Settings">
-          <Settings2 size={18} />
+        <button
+          className="icon-circle"
+          type="button"
+          aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          aria-pressed={!isDark}
+          onClick={toggleTheme}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
         <button className="nav-button secondary" type="button">Sign in</button>
         <button className="nav-button primary" type="button">Get Started</button>
