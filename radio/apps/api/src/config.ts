@@ -4,6 +4,9 @@ const configSchema = z.object({
   API_HOST: z.string().default("0.0.0.0"),
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   WEB_BASE_URL: z.string().url().default("http://localhost:3000"),
+  // Comma-separated extra browser origins allowed by CORS (the Vite front end).
+  CORS_ORIGINS: z.string().default("http://localhost:5173"),
+  RADIO_TRANSCRIPT_OFFSET_MS: z.coerce.number().int().min(0).max(30000).default(3000),
   BLOCKTEK_AUTH_MODE: z.enum(["unconfigured", "development", "trusted-proxy"]).default(process.env.NODE_ENV === "production" ? "unconfigured" : "development"),
   BLOCKTEK_AUTH_SHARED_SECRET: z.string().min(32).optional().or(z.literal("")),
   DATABASE_URL: z.string().url().optional().or(z.literal("")),
@@ -11,7 +14,7 @@ const configSchema = z.object({
   AI_PROVIDER: z.enum(["development", "openai-compatible", "asi-cloud", "groq"]).default("development"),
   AI_MODEL: z.string().trim().max(120).optional().or(z.literal("")),
   AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(60000).default(12000),
-  AI_PROGRAMMING_MODE: z.enum(["DETERMINISTIC", "AI_ASSISTED", "AI_PROGRAMMED"]).default("DETERMINISTIC"),
+  AI_PROGRAMMING_MODE: z.enum(["DETERMINISTIC", "AI_ASSISTED", "AI_PROGRAMMED"]).default("AI_ASSISTED"),
   AI_PROVIDER_URL: z.string().url().optional().or(z.literal("")),
   AI_PROVIDER_API_KEY: z.string().optional().or(z.literal("")),
   MIDNIGHT_NETWORK: z.string().default("unconfigured"),

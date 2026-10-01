@@ -6,7 +6,7 @@ import { probeDurationSec, sha256File, transcribeFile, TranscribeError, type Tra
 export const RADIO_AUDIO_EXTENSIONS = new Set([".mp3", ".m4a", ".wav", ".ogg", ".webm", ".aac"])
 const TEMPLATE = [{ file: "example.mp3", title: "Example title", npub: "npub1...", space: "optional" }]
 
-export type Recording = { id: string; title: string; npub: string; space: string | null; path: string; durationSec: number | null; language: string | null; audioSha256: string }
+export type Recording = { id: string; title: string; npub: string; space: string | null; path: string; durationSec: number | null; language: string | null; audioSha256: string; excerpt: string }
 type ManifestEntry = { file?: string; title?: string; npub?: string; space?: string }
 type Log = (message: string, data?: Record<string, unknown>) => void
 
@@ -98,7 +98,7 @@ export class Ingester {
           this.log("ingest metadata updated", { file: name })
         }
         this.log("ingest file", { file: name, status: "ready", transcribed: false })
-        next.push({ id, title, npub: entry.npub, space, path, durationSec: existing.durationSec ?? null, language: existing.language ?? null, audioSha256: sha })
+        next.push({ id, title, npub: entry.npub, space, path, durationSec: existing.durationSec ?? null, language: existing.language ?? null, audioSha256: sha, excerpt: String(existing.transcript.text).slice(0, 800) })
         continue
       }
       if (this.failedSha.get(name) === sha) { this.log("ingest file", { file: name, status: "failed" }); continue }
@@ -109,7 +109,7 @@ export class Ingester {
       await this.writeJson(transcriptPath, { id, title, npub: entry.npub, space, language: result.transcript.language, durationSec, audioSha256: sha, transcript: result.transcript })
       this.failedSha.delete(name)
       this.log("ingest file", { file: name, status: "ready", transcribed: true })
-      next.push({ id, title, npub: entry.npub, space, path, durationSec, language: result.transcript.language, audioSha256: sha })
+      next.push({ id, title, npub: entry.npub, space, path, durationSec, language: result.transcript.language, audioSha256: sha, excerpt: result.transcript.text.slice(0, 800) })
     }
     this.ready = next
     await this.onChange?.(next)

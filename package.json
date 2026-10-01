@@ -12,9 +12,13 @@
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.24",
+    "@scure/bip32": "^2.4.0",
+    "bip39": "^3.1.0",
+    "buffer": "^6.0.3",
     "livekit-client": "^2.22.3",
     "livekit-server-sdk": "^2.19.1",
     "lucide-react": "^0.468.0",
+    "nostr-tools": "^2.25.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

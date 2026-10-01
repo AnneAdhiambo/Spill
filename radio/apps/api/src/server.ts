@@ -15,6 +15,8 @@ import type { AiDecisionStore } from "./db/repository.js"
 import { actorFromRequest, authFailure } from "./auth.js"
 import { pipeline } from "node:stream/promises"
 import { createWriteStream } from "node:fs"
+import { readFile } from "node:fs/promises"
+import { Redis } from "ioredis"
 import { unlink } from "node:fs/promises"
 import os from "node:os"
 import { randomUUID } from "node:crypto"
@@ -96,7 +98,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     return Promise.all(channels.map(async (channel) => ({ ...channel, stream: await checkedStream(channel.stream) })))
   }
 
-  app.register(cors, { origin: config.WEB_BASE_URL })
+  app.register(cors, { origin: [config.WEB_BASE_URL, ...config.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)] })
   // multipart support for file uploads (transcription)
   app.register(multipart, { limits: { fileSize: 15 * 1024 * 1024 } })
 
@@ -241,6 +243,34 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     } finally {
       await unlink(tmpPath).catch(() => {})
     }
+  })
+
+  // Now-playing state published by the worker in Redis. A missing key means the station is off air.
+  const radioRedis = config.REDIS_URL ? new Redis(config.REDIS_URL, { maxRetriesPerRequest: 1, enableOfflineQueue: false, lazyConnect: false }) : null
+  radioRedis?.on("error", () => {})
+  app.addHook("onClose", async () => { radioRedis?.disconnect() })
+  const wordsCache = new Map<string, { id: string; words: unknown[] }>()
+  app.get("/api/v1/radio/now", async (_request, reply) => {
+    if (!radioRedis) return reply.code(503).send({ error: "REDIS_NOT_CONFIGURED" })
+    let raw: string | null
+    try { raw = await radioRedis.get("radio:now") } catch { return reply.code(503).send({ error: "STATE_UNAVAILABLE" }) }
+    if (!raw) return reply.code(503).send({ error: "OFF_AIR" })
+    const s = JSON.parse(raw)
+    let words: unknown[] = []
+    if (s.transcriptPath) {
+      const cached = wordsCache.get(s.transcriptPath)
+      if (cached && cached.id === s.id) words = cached.words
+      else {
+        try { words = JSON.parse(await readFile(s.transcriptPath, "utf8"))?.transcript?.words ?? []; wordsCache.clear(); wordsCache.set(s.transcriptPath, { id: s.id, words }) } catch { words = [] }
+      }
+    }
+    return reply.send({ data: {
+      current: { id: s.id, title: s.title, kind: s.kind, npub: s.npub, space: s.space, startedAt: s.startedAt, durationSec: s.durationSec },
+      upNext: s.upNext,
+      words,
+      serverTime: new Date().toISOString(),
+      transcriptOffsetMs: config.RADIO_TRANSCRIPT_OFFSET_MS,
+    } })
   })
 
   app.get("/api/v1/submissions/:id", async (request, reply) => {

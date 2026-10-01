@@ -30,6 +30,12 @@ export class BroadcastStore {
     else await this.sql`UPDATE media_assets SET enabled = false, updated_at = now() WHERE enabled = true`
   }
 
+  /** Order and status only. No transcript text and no AI reasons are stored. */
+  async saveDecision(d: { id: string; provider: string | null; model: string | null; order: string[]; status: "ACCEPTED" | "FALLBACK"; error: string | null; latencyMs: number }) {
+    await this.sql`INSERT INTO ai_programming_decisions (id, request_type, provider, model, input_context_hash, proposal, validation_status, rejection_reason, explanation, latency_ms)
+      VALUES (${d.id}, ${"radio-block"}, ${d.provider}, ${d.model}, ${""}, ${this.sql.json({ order: d.order })}, ${d.status}, ${d.error}, ${d.status === "ACCEPTED" ? "AI-ordered block" : "Deterministic fallback block"}, ${d.latencyMs})`
+  }
+
   async event(sessionId: string, eventType: string, item: BroadcastQueueItem | null, error?: string) {
     const id = `event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const metadata = item ? { id: item.id, title: item.title, artist: item.artist, album: item.album, artworkUrl: item.artworkUrl, programme: item.programme, source: item.source } : {}
