@@ -14,10 +14,11 @@ import { checkStream, type StreamProbe } from "./stream.js"
 import type { AiDecisionStore } from "./db/repository.js"
 import { actorFromRequest, authFailure } from "./auth.js"
 import { pipeline } from "node:stream/promises"
-import { createWriteStream, unlink } from "node:fs"
+import { createWriteStream } from "node:fs"
+import { unlink } from "node:fs/promises"
 import os from "node:os"
 import { randomUUID } from "node:crypto"
-import { transcribeFile } from "../../shared/src/transcriber.js"
+import { transcribeFile, TranscribeError } from "../../shared/src/transcriber.js"
 // Privacy flows (Midnight) removed. Use a minimal in-memory placeholder that
 // satisfies the small subset of methods the server expects during Phase 2.
 type PrivacyActor = { id: string; role: "CONTRIBUTOR" | "EDITOR" | "ADMIN" }
@@ -66,7 +67,7 @@ export type ServerDependencies = {
 }
 
 export function buildServer(config: ApiConfig = loadConfig(), dependencies: ServerDependencies = {}) {
-  const app = Fastify({ logger: { level: process.env.LOG_LEVEL || "info" } })
+  const app = Fastify({ logger: { level: process.env.LOG_LEVEL || "info", serializers: { req: (req) => ({ method: req.method, url: req.url }) } } })
   // Privacy/Midnight removed: do not initialise a privacy store.
   const privacyStore = dependencies.privacyStore || null
   const submissions = new Map<string, Submission>()
@@ -97,7 +98,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
 
   app.register(cors, { origin: config.WEB_BASE_URL })
   // multipart support for file uploads (transcription)
-  app.register(multipart, { limits: { fileSize: 200 * 1024 * 1024 } })
+  app.register(multipart, { limits: { fileSize: 15 * 1024 * 1024 } })
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -214,20 +215,31 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     })
   })
 
-  // Transcription endpoint: accepts multipart file upload. The worker and
-  // transcriber enforce ffmpeg conversion to 16k mono WAV and a 120s cap.
+  // Transcription endpoint (dictation). Audio is converted to 16 kHz mono WAV, capped at 120 s,
+  // sent to the transcriber and deleted. Nothing is stored; transcript text is never logged.
+  const transcribeHits = new Map<string, number[]>()
+  const TRANSCRIBE_LIMIT = 10 // requests per minute per client, in memory only
   app.post("/api/v1/transcribe", async (request, reply) => {
-    const file = await (request as FastifyRequest).file?.()
+    const now = Date.now()
+    const hits = (transcribeHits.get(request.ip) || []).filter((t) => now - t < 60_000)
+    if (hits.length >= TRANSCRIBE_LIMIT) return reply.code(429).send({ error: "RATE_LIMITED" })
+    hits.push(now); transcribeHits.set(request.ip, hits)
+    if (transcribeHits.size > 5000) for (const [k, v] of transcribeHits) if (!v.some((t) => now - t < 60_000)) transcribeHits.delete(k)
+    const file = await (request as FastifyRequest).file?.({ limits: { fileSize: 15 * 1024 * 1024 } })
     if (!file) return reply.code(400).send({ error: "NO_FILE" })
-    const tmpPath = `${os.tmpdir()}/${randomUUID()}-${file.filename || "upload"}`
+    const tmpPath = `${os.tmpdir()}/spill-upload-${randomUUID()}`
     try {
       await pipeline(file.file, createWriteStream(tmpPath))
-      const result = await transcribeFile(tmpPath)
-      // ensure we do not return empty transcripts or log transcript text
-      if (!result) return reply.code(422).send({ error: "TRANSCRIPTION_FAILED" })
-      return reply.send({ data: { transcript: { language: result.transcript.language || null, segments: result.transcript.segments, words: result.transcript.words }, audioSha256: result.audioSha256 } })
+      if (file.file.truncated) return reply.code(413).send({ error: "FILE_TOO_LARGE" })
+      const { transcript } = await transcribeFile(tmpPath, { maxSeconds: 120 })
+      return reply.send({ text: transcript.text, language: transcript.language, segments: transcript.segments, words: transcript.words })
+    } catch (err) {
+      const code = err instanceof TranscribeError ? err.code : "TRANSCRIPTION_FAILED"
+      request.log.warn({ code }, "transcribe failed")
+      const status = code === "MISSING_KEY" || code === "UNAVAILABLE" || code === "BAD_PROVIDER" ? 503 : code === "FFMPEG_FAILED" ? 415 : 502
+      return reply.code(status).send({ error: code, message: err instanceof TranscribeError ? err.message : "Transcription failed" })
     } finally {
-      try { await unlink(tmpPath) } catch {}
+      await unlink(tmpPath).catch(() => {})
     }
   })
 

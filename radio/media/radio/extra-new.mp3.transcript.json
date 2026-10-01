@@ -1,0 +1,240 @@
+{
+  "id": "rec-4c294cc330a9",
+  "title": "Extra new",
+  "npub": "npub1zupsftlnpddt70jepjzlw5pgxxtp0u7jhhrtf7awqmqqxghtem0qyn9j4a",
+  "space": null,
+  "language": "English",
+  "durationSec": 12.068571,
+  "audioSha256": "4c294cc330a9df5dd233c543a43ddb5f379da81a0e30426c6084c46a785d98e6",
+  "transcript": {
+    "text": "Let us talk about young people, and work. Many of us finished school, and have been looking for a job for more than a year. Some are doing casual labor, some are selling goods by the roadside, and some are working",
+    "language": "English",
+    "segments": [
+      {
+        "start": 0,
+        "end": 2.5,
+        "text": "Let us talk about young people, and work.",
+        "uncertain": false
+      },
+      {
+        "start": 2.8999999,
+        "end": 7.06,
+        "text": "Many of us finished school, and have been looking for a job for more than a year.",
+        "uncertain": false
+      },
+      {
+        "start": 7.48,
+        "end": 12,
+        "text": "Some are doing casual labor, some are selling goods by the roadside, and some are working",
+        "uncertain": false
+      }
+    ],
+    "words": [
+      {
+        "start": 0,
+        "end": 0.16,
+        "word": "Let"
+      },
+      {
+        "start": 0.16,
+        "end": 0.38,
+        "word": "us"
+      },
+      {
+        "start": 0.38,
+        "end": 0.7,
+        "word": "talk"
+      },
+      {
+        "start": 0.7,
+        "end": 1,
+        "word": "about"
+      },
+      {
+        "start": 1,
+        "end": 1.3,
+        "word": "young"
+      },
+      {
+        "start": 1.3,
+        "end": 1.96,
+        "word": "people,"
+      },
+      {
+        "start": 1.96,
+        "end": 2.1,
+        "word": "and"
+      },
+      {
+        "start": 2.1,
+        "end": 2.94,
+        "word": "work."
+      },
+      {
+        "start": 2.94,
+        "end": 3.1,
+        "word": "Many"
+      },
+      {
+        "start": 3.1,
+        "end": 3.3,
+        "word": "of"
+      },
+      {
+        "start": 3.3,
+        "end": 3.48,
+        "word": "us"
+      },
+      {
+        "start": 3.48,
+        "end": 3.84,
+        "word": "finished"
+      },
+      {
+        "start": 3.84,
+        "end": 4.54,
+        "word": "school,"
+      },
+      {
+        "start": 4.54,
+        "end": 4.58,
+        "word": "and"
+      },
+      {
+        "start": 4.58,
+        "end": 4.82,
+        "word": "have"
+      },
+      {
+        "start": 4.82,
+        "end": 5,
+        "word": "been"
+      },
+      {
+        "start": 5,
+        "end": 5.28,
+        "word": "looking"
+      },
+      {
+        "start": 5.28,
+        "end": 5.6,
+        "word": "for"
+      },
+      {
+        "start": 5.6,
+        "end": 5.74,
+        "word": "a"
+      },
+      {
+        "start": 5.74,
+        "end": 5.94,
+        "word": "job"
+      },
+      {
+        "start": 5.94,
+        "end": 6.16,
+        "word": "for"
+      },
+      {
+        "start": 6.16,
+        "end": 6.42,
+        "word": "more"
+      },
+      {
+        "start": 6.42,
+        "end": 6.64,
+        "word": "than"
+      },
+      {
+        "start": 6.64,
+        "end": 6.76,
+        "word": "a"
+      },
+      {
+        "start": 6.76,
+        "end": 7.54,
+        "word": "year."
+      },
+      {
+        "start": 7.52,
+        "end": 7.66,
+        "word": "Some"
+      },
+      {
+        "start": 7.66,
+        "end": 7.82,
+        "word": "are"
+      },
+      {
+        "start": 7.82,
+        "end": 8.12,
+        "word": "doing"
+      },
+      {
+        "start": 8.12,
+        "end": 8.62,
+        "word": "casual"
+      },
+      {
+        "start": 8.62,
+        "end": 9.26,
+        "word": "labor,"
+      },
+      {
+        "start": 9.26,
+        "end": 9.46,
+        "word": "some"
+      },
+      {
+        "start": 9.46,
+        "end": 9.66,
+        "word": "are"
+      },
+      {
+        "start": 9.66,
+        "end": 9.98,
+        "word": "selling"
+      },
+      {
+        "start": 9.98,
+        "end": 10.36,
+        "word": "goods"
+      },
+      {
+        "start": 10.36,
+        "end": 10.58,
+        "word": "by"
+      },
+      {
+        "start": 10.58,
+        "end": 10.78,
+        "word": "the"
+      },
+      {
+        "start": 10.78,
+        "end": 11.58,
+        "word": "roadside,"
+      },
+      {
+        "start": 11.58,
+        "end": 11.78,
+        "word": "and"
+      },
+      {
+        "start": 11.78,
+        "end": 12.08,
+        "word": "some"
+      },
+      {
+        "start": 12.08,
+        "end": 12.48,
+        "word": "are"
+      },
+      {
+        "start": 12.48,
+        "end": 12.5,
+        "word": "working"
+      }
+    ]
+  }
+}

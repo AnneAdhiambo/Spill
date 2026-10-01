@@ -1,8 +1,12 @@
 import { spawn, type ChildProcess } from "node:child_process"
 import { mkdir } from "node:fs/promises"
+import { watch } from "node:fs"
+import { join } from "node:path"
 import { selectBroadcastItem, type BroadcastQueueItem } from "@blocktek/radio-core"
 import { discoverMedia } from "./media.js"
 import { BroadcastStore } from "./store.js"
+import { Ingester, type Recording } from "./ingest.js"
+import { mediaRoot, resolveFromRoot } from "./paths.js"
 
 const env = process.env
 const bool = (value: string | undefined) => value?.toLowerCase() === "true"
@@ -18,38 +22,43 @@ async function runTrack(item: BroadcastQueueItem, sourceUrl: string): Promise<{ 
 async function run() {
   if (!bool(env.RADIO_BROADCAST_ENABLED)) { log("broadcast not configured", { reason: "RADIO_BROADCAST_ENABLED is false" }); return }
   if (!env.DATABASE_URL || !env.ICECAST_SOURCE_PASSWORD || !env.ICECAST_HOST) { log("broadcast not configured", { reason: "DATABASE_URL, ICECAST_SOURCE_PASSWORD, and ICECAST_HOST are required" }); return }
-  const mediaRoot = env.MEDIA_ROOT || "/opt/blocktek-radio/media"; await mkdir(mediaRoot, { recursive: true })
-  const items = await discoverMedia(mediaRoot, env.FALLBACK_AUDIO_PATH, bool(env.RADIO_TEST_TONE_ENABLED)); if (!items.length) { log("no media configured", { mediaRoot }); return }
-  const store = new BroadcastStore(env.DATABASE_URL); await store.syncMediaAssets(items); await store.recoverAiQueue(); const mount = env.ICECAST_MOUNT || "/live"; const sessionId = await store.startSession(env.RADIO_STATION_ID || "spill-main", mount)
+  const root = mediaRoot(env); await mkdir(root, { recursive: true })
+  const radioDir = join(root, "radio"); await mkdir(radioDir, { recursive: true })
+  const musicDir = join(root, "music"); await mkdir(musicDir, { recursive: true })
+  const fallbackPath = env.FALLBACK_AUDIO_PATH ? resolveFromRoot(env.FALLBACK_AUDIO_PATH) : undefined
+  log("media paths", { mediaRoot: root, dropFolder: radioDir, musicDir, fallbackPath })
+  const store = new BroadcastStore(env.DATABASE_URL)
+  // Rotation = ready recordings + music. Fallback/test tone only when nothing else is playable.
+  let rotation: BroadcastQueueItem[] = []
+  let fallbackItems: BroadcastQueueItem[] = []
+  const rebuild = async (recs: Recording[]) => {
+    const recItems: BroadcastQueueItem[] = recs.map((r) => ({ id: r.id, title: r.title, artist: r.npub, album: r.space, artworkUrl: null, programme: null, startedAt: new Date().toISOString(), source: "music", path: r.path, durationSeconds: r.durationSec ?? undefined }))
+    const music = (await discoverMedia(musicDir, undefined, false)).map((m) => ({ ...m, id: `music-${m.id}` }))
+    fallbackItems = await discoverMedia(fallbackPath ?? join(root, "fallback"), undefined, bool(env.RADIO_TEST_TONE_ENABLED))
+    rotation = [...recItems, ...music]
+    await store.syncMediaAssets([...rotation, ...fallbackItems])
+    log("rotation updated", { recordings: recItems.length, music: music.length, fallback: fallbackItems.length })
+  }
+  const ingester = new Ingester(radioDir, log, rebuild)
+  await ingester.scan() // initial scan (transcribes anything new) before the session starts
+  await rebuild(ingester.recordings())
+  await store.recoverAiQueue(); const mount = env.ICECAST_MOUNT || "/live"; const sessionId = await store.startSession(env.RADIO_STATION_ID || "spill-main", mount)
   const sourceUrl = `icecast://${encodeURIComponent(env.ICECAST_SOURCE_USER || "source")}:${encodeURIComponent(env.ICECAST_SOURCE_PASSWORD)}@${env.ICECAST_HOST}:${env.ICECAST_PORT || "8000"}${mount}`
-  let stopping = false; let currentIndex = -1
-  // Start a background ingest watcher: prefer fs.watch, fallback to polling every 30s
-  const mediaRootPath = mediaRoot
-  const startIngestScan = async () => {
-    try {
-      const newItems = await discoverMedia(mediaRootPath, env.FALLBACK_AUDIO_PATH, bool(env.RADIO_TEST_TONE_ENABLED))
-      if (newItems.length) await store.syncMediaAssets(newItems)
-    } catch (err) {
-      log("ingest-scan-failed", { error: err instanceof Error ? err.message : String(err) })
-    }
+  let stopping = false; let lastId: string | null = null
+  // Background ingest: file watcher (debounced) plus polling fallback. Never blocks playback.
+  let debounce: NodeJS.Timeout | undefined
+  const trigger = () => { clearTimeout(debounce); debounce = setTimeout(() => void ingester.scan(), 1000) }
+  try { watch(radioDir, (_event, name) => { if (name && !String(name).endsWith(".transcript.json") && !String(name).endsWith(".tmp")) trigger() }) } catch (err) { log("file watcher unavailable, polling only", { error: String(err) }) }
+  setInterval(() => void ingester.scan(), Number(env.RADIO_INGEST_POLL_MS || 30000))
+  const nextItem = async (): Promise<BroadcastQueueItem | null> => {
+    const aiItem = await store.claimNextAiItem(); if (aiItem) return aiItem
+    const pool = rotation.length ? rotation : fallbackItems
+    if (!pool.length) return null
+    const at = pool.findIndex((i) => i.id === lastId)
+    const item = pool[(at + 1) % pool.length]; lastId = item.id
+    const programmeTitle = await store.currentProgrammeTitle()
+    return selectBroadcastItem(programmeTitle ? { startTime: "", endTime: "", title: programmeTitle } : null, item, null)
   }
-  try {
-    // Try to use a filesystem watcher first
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = await import("fs")
-    const watcher = fs.watch(mediaRootPath, { recursive: true }, () => void startIngestScan())
-    // Also run an initial scan now
-    void startIngestScan()
-    // Fallback periodic scan every 30s to catch missed events
-    const pollMs = Number(env.RADIO_INGEST_POLL_MS || 30000)
-    setInterval(() => void startIngestScan(), pollMs)
-  } catch (err) {
-    // If watcher not available, fallback to polling only
-    const pollMs = Number(env.RADIO_INGEST_POLL_MS || 30000)
-    setInterval(() => void startIngestScan(), pollMs)
-    void startIngestScan()
-  }
-  const nextItem = async () => { const aiItem = await store.claimNextAiItem(); if (aiItem) return aiItem; currentIndex = (currentIndex + 1) % items.length; const programmeTitle = await store.currentProgrammeTitle(); return selectBroadcastItem(programmeTitle ? { startTime: "", endTime: "", title: programmeTitle } : null, items[currentIndex], null) }
   const shutdown = async (signal: string) => { if (stopping) return; stopping = true; log("broadcast stopping", { signal }); await store.stopSession(sessionId); await store.close() }
   process.once("SIGTERM", () => void shutdown("SIGTERM")); process.once("SIGINT", () => void shutdown("SIGINT"))
   try {
