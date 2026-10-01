@@ -1,8 +1,10 @@
 import cors from "@fastify/cors"
+import multipart from "@fastify/multipart"
 import Fastify from "fastify"
 import type { FastifyReply, FastifyRequest } from "fastify"
 import { AiProgrammingService, contextHash, createAiProviderManager, defaultStationProfile, type BroadcastContext } from "@blocktek/ai"
-import { createMidnightAdapter, eligibilityDisclosure, type MidnightAdapter } from "@blocktek/midnight"
+// Midnight removed as part of Phase 2 cleanup. Replace midnight integrations with
+// no-op placeholders so the API runs without MIDNIGHT_* env vars.
 import { createRadioSeed, InMemoryRadioRepository, radioStatusForStream, type RadioRepository } from "@blocktek/radio-core"
 import { programmeRequestSchema, submissionStateSchema, type AiDecision, type Channel, type SubmissionState, type Stream } from "@blocktek/types"
 import { z } from "zod"
@@ -11,7 +13,16 @@ import { transitionSubmission } from "./submission.js"
 import { checkStream, type StreamProbe } from "./stream.js"
 import type { AiDecisionStore } from "./db/repository.js"
 import { actorFromRequest, authFailure } from "./auth.js"
-import { InMemoryPrivacyStore, type PrivacyActor, type PrivacyStore } from "./privacy.js"
+import { pipeline } from "node:stream/promises"
+import { createWriteStream, unlink } from "node:fs"
+import os from "node:os"
+import { randomUUID } from "node:crypto"
+import { transcribeFile } from "../../shared/src/transcriber.js"
+// Privacy flows (Midnight) removed. Use a minimal in-memory placeholder that
+// satisfies the small subset of methods the server expects during Phase 2.
+type PrivacyActor = { id: string; role: "CONTRIBUTOR" | "EDITOR" | "ADMIN" }
+type PrivacyStore = { counts(): Promise<{ pending: number; verified: number; approved: number }>; programmable(): Promise<any[]>; close(): Promise<void> }
+const InMemoryPrivacyStore = () => ({ counts: async () => ({ pending: 0, verified: 0, approved: 0 }), programmable: async () => [], close: async () => {} }) as PrivacyStore
 
 const transitionBodySchema = z.object({ to: submissionStateSchema })
 const submissionBodySchema = z.object({
@@ -52,13 +63,12 @@ export type ServerDependencies = {
   streamProbe?: StreamProbe
   aiDecisionStore?: AiDecisionStore
   privacyStore?: PrivacyStore
-  midnightAdapter?: MidnightAdapter
 }
 
 export function buildServer(config: ApiConfig = loadConfig(), dependencies: ServerDependencies = {}) {
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL || "info" } })
-  const midnight = dependencies.midnightAdapter || createMidnightAdapter(process.env)
-  const privacyStore = dependencies.privacyStore || new InMemoryPrivacyStore()
+  // Privacy/Midnight removed: do not initialise a privacy store.
+  const privacyStore = dependencies.privacyStore || null
   const submissions = new Map<string, Submission>()
   const radioRepository = dependencies.radioRepository || new InMemoryRadioRepository(createRadioSeed({
     streamUrl: config.RADIO_PUBLIC_STREAM_URL || config.RADIO_STREAM_URL || undefined,
@@ -86,6 +96,8 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
   }
 
   app.register(cors, { origin: config.WEB_BASE_URL })
+  // multipart support for file uploads (transcription)
+  app.register(multipart, { limits: { fileSize: 200 * 1024 * 1024 } })
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) {
@@ -104,7 +116,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
       radioStream: Boolean(config.RADIO_STREAM_ENABLED && (config.RADIO_PUBLIC_STREAM_URL || config.RADIO_STREAM_URL)),
       aiProvider: config.AI_PROVIDER,
       aiStatus: (await aiService.status()).status,
-      midnight: midnight.status().status,
+      midnight: "NOT_CONFIGURED",
       broadcast: config.RADIO_BROADCAST_ENABLED ? "enabled" : "not-configured",
       redis: "optional",
     },
@@ -121,7 +133,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
       redis: "not-required",
       broadcastEngine: broadcast.status === "RUNNING" || broadcast.status === "DEGRADED" ? "running" : config.RADIO_BROADCAST_ENABLED ? "not-running" : "not-required",
       icecast: broadcast.health.icecastRunning ? "running" : config.RADIO_BROADCAST_ENABLED ? "not-reachable" : "not-required",
-      midnight: midnight.status().status,
+      midnight: "NOT_CONFIGURED",
     })
   })
 
@@ -164,7 +176,8 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     const nowPlaying = await radioRepository.getNowPlaying()
     const queue = await radioRepository.getQueue(8)
     const media = await radioRepository.getMediaAssets()
-    const approvedContributions = await privacyStore.programmable()
+    // Privacy/Midnight removed: no programmable contributions are available.
+    const approvedContributions: any[] = []
     const context: BroadcastContext = { now: new Date().toISOString(), currentProgramme: nowPlaying.programme?.title || null, currentTrackId: nowPlaying.track?.id || null, recentTrackIds: nowPlaying.track ? [nowPlaying.track.id] : [], recentArtists: nowPlaying.track ? [nowPlaying.track.artist.name] : [], upcomingTrackIds: queue.map((item) => item.track.id).slice(0, 8), availableMedia: media.map(({ id, title, artist, album, durationSeconds, genre, mood, kind, enabled, programmeEligible }) => ({ id, title, artist, album, durationSeconds, genre, mood, kind, enabled, programmeEligible })), approvedContributions, station: defaultStationProfile, mode: config.AI_PROGRAMMING_MODE, request: input }
     const result = config.AI_PROGRAMMING_MODE === "DETERMINISTIC"
       ? await aiService.generate({ ...context, mode: "DETERMINISTIC" })
@@ -183,38 +196,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
   app.get("/api/v1/ai/decisions", async (request) => { const query = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) }).parse(request.query); return { data: await decisionStore.list(query.limit) } })
   app.get("/api/v1/ai/decisions/:id", async (request, reply) => { const item = await decisionStore.get((request.params as { id: string }).id); return item ? { data: item } : reply.code(404).send({ error: "NOT_FOUND" }) })
 
-  app.get("/api/v1/midnight/status", async () => ({ data: { ...midnight.status(), privacy: await privacyStore.counts() } }))
-  app.get("/api/v1/verification/disclosure", async () => ({ data: eligibilityDisclosure() }))
-
-  function requireActor(request: FastifyRequest, reply: FastifyReply): PrivacyActor | null {
-    const actor = actorFromRequest(request, config)
-    if (actor) return actor
-    void reply.code(503).send(authFailure(config))
-    return null
-  }
-
-  app.post("/api/v1/contributions", async (request, reply) => {
-    const actor = requireActor(request, reply)
-    if (!actor) return
-    if (actor.role !== "CONTRIBUTOR" && actor.role !== "EDITOR" && actor.role !== "ADMIN") return reply.code(403).send({ error: "FORBIDDEN" })
-    const input = contributionBodySchema.parse(request.body)
-    return reply.code(201).send({ data: await privacyStore.create(input, actor), notice: "Only the content metadata and commitment were stored; raw proof witnesses are never accepted by this API." })
-  })
-
-  app.get("/api/v1/contributions", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; return { data: await privacyStore.list(actor) } })
-  app.get("/api/v1/contributions/:id", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; const item = await privacyStore.get((request.params as { id: string }).id, actor); return item ? { data: item } : reply.code(404).send({ error: "NOT_FOUND" }) })
-  app.post("/api/v1/contributions/:id/prove-eligibility", async (request, reply) => {
-    const actor = requireActor(request, reply)
-    if (!actor) return
-    if (actor.role !== "CONTRIBUTOR") return reply.code(403).send({ error: "CONTRIBUTOR_ROLE_REQUIRED" })
-    const input = proofBodySchema.parse(request.body)
-    try { return { data: await privacyStore.verify((request.params as { id: string }).id, input, actor, midnight) } } catch (error) { return reply.code(503).send({ error: "PRIVACY_VERIFICATION_UNAVAILABLE", message: error instanceof Error ? error.message : "Privacy verification did not complete" }) }
-  })
-  app.get("/api/v1/contributions/:id/privacy-status", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; try { return { data: await privacyStore.privacyStatus((request.params as { id: string }).id, actor) } } catch { return reply.code(404).send({ error: "NOT_FOUND" }) } })
-  app.post("/api/v1/contributions/:id/editorial-review", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; if (actor.role !== "EDITOR" && actor.role !== "ADMIN") return reply.code(403).send({ error: "EDITORIAL_ROLE_REQUIRED" }); const input = reviewBodySchema.parse(request.body); try { return { data: await privacyStore.review((request.params as { id: string }).id, input, actor) } } catch (error) { return reply.code(409).send({ error: "INVALID_EDITORIAL_REVIEW", message: error instanceof Error ? error.message : "Editorial review rejected" }) } })
-  app.post("/api/v1/contributions/:id/approve", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; if (actor.role !== "EDITOR" && actor.role !== "ADMIN") return reply.code(403).send({ error: "EDITORIAL_ROLE_REQUIRED" }); try { return { data: await privacyStore.approve((request.params as { id: string }).id, actor) } } catch (error) { return reply.code(409).send({ error: "NOT_READY_FOR_APPROVAL", message: error instanceof Error ? error.message : "Contribution is not ready for approval" }) } })
-  app.get("/api/v1/midnight/verification/:id", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; try { return { data: await privacyStore.privacyStatus((request.params as { id: string }).id, actor) } } catch { return reply.code(404).send({ error: "NOT_FOUND" }) } })
-  app.get("/api/v1/contributions/:id/audit", async (request, reply) => { const actor = requireActor(request, reply); if (!actor) return; try { return { data: await privacyStore.audit((request.params as { id: string }).id, actor) } } catch { return reply.code(404).send({ error: "NOT_FOUND" }) } })
+  // Privacy and Midnight-related endpoints removed as part of Phase 2 cleanup.
 
   app.post("/api/v1/submissions", async (request, reply) => {
     const input = submissionBodySchema.parse(request.body)
@@ -230,6 +212,23 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
       data: submission,
       notice: "DEVELOPMENT ONLY: identity, evidence encryption, authentication, and durable storage are not configured.",
     })
+  })
+
+  // Transcription endpoint: accepts multipart file upload. The worker and
+  // transcriber enforce ffmpeg conversion to 16k mono WAV and a 120s cap.
+  app.post("/api/v1/transcribe", async (request, reply) => {
+    const file = await (request as FastifyRequest).file?.()
+    if (!file) return reply.code(400).send({ error: "NO_FILE" })
+    const tmpPath = `${os.tmpdir()}/${randomUUID()}-${file.filename || "upload"}`
+    try {
+      await pipeline(file.file, createWriteStream(tmpPath))
+      const result = await transcribeFile(tmpPath)
+      // ensure we do not return empty transcripts or log transcript text
+      if (!result) return reply.code(422).send({ error: "TRANSCRIPTION_FAILED" })
+      return reply.send({ data: { transcript: { language: result.transcript.language || null, segments: result.transcript.segments, words: result.transcript.words }, audioSha256: result.audioSha256 } })
+    } finally {
+      try { await unlink(tmpPath) } catch {}
+    }
   })
 
   app.get("/api/v1/submissions/:id", async (request, reply) => {
@@ -252,6 +251,9 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     return reply.send({ data: submission })
   })
 
-  app.addHook("onClose", async () => { await radioRepository.close(); await privacyStore.close() })
+  app.addHook("onClose", async () => {
+    await radioRepository.close()
+    if (privacyStore && typeof privacyStore.close === "function") await privacyStore.close()
+  })
   return app
 }

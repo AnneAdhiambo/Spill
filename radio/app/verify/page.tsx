@@ -1,4 +1,5 @@
 import { ProductShell } from "@/components/product-shell"
-import { VerificationConsole } from "@/components/verification-console"
 
-export default function VerifyPage() { return <ProductShell><section className="border-b border-border"><div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28"><div className="mb-4 flex items-center gap-3"><span className="font-mono text-xs uppercase tracking-widest text-accent">Verification</span><span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Midnight boundary</span></div><h1 className="max-w-3xl text-balance text-5xl font-semibold leading-[0.98] tracking-tight md:text-7xl">Prove the property. Protect the person.</h1><p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">Selective disclosure can reveal contributor eligibility without publishing the identity fields behind it. The real proof verifier is not configured in this environment.</p><div className="mt-12"><VerificationConsole /></div></div></section></ProductShell> }
+export default function VerifyPage() {
+	return <ProductShell><section className="border-b border-border"><div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28"><h1 className="text-3xl font-semibold">Removed</h1><p className="mt-4 text-sm text-muted-foreground">Verification flows have been removed during the Phase 2 cleanup.</p></div></section></ProductShell>
+}

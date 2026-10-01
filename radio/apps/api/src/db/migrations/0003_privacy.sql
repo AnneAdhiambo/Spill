@@ -68,5 +68,7 @@ CREATE TABLE IF NOT EXISTS "contribution_audit_events" (
 );
 CREATE INDEX IF NOT EXISTS "contribution_audit_events_contribution_idx" ON "contribution_audit_events" ("contribution_id", "created_at");
 ALTER TABLE "media_assets" ADD COLUMN IF NOT EXISTS "contribution_id" text REFERENCES "contributions"("id") ON DELETE SET NULL;
+-- OPEN QUESTION: `privacy_verified` is a legacy column used for Midnigh-derived eligibility.
+-- Consider replacing with a dedicated `eligible` flag and removing this column in Phase 7.
 ALTER TABLE "media_assets" ADD COLUMN IF NOT EXISTS "privacy_verified" boolean NOT NULL DEFAULT true;
 ALTER TABLE "media_assets" ADD COLUMN IF NOT EXISTS "editorial_approved" boolean NOT NULL DEFAULT true;

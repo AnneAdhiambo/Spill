@@ -181,6 +181,7 @@ export class PostgresRadioRepository implements RadioRepository {
   }
 
   async getMediaAssets(): Promise<MediaAsset[]> {
+    // OPEN QUESTION: replace privacy_verified usage with a proper eligible flag before Phase 7 drops the privacy tables.
     const rows = await this.db.select().from(schema.mediaAssets).where(and(eq(schema.mediaAssets.enabled, true), eq(schema.mediaAssets.privacyVerified, true), eq(schema.mediaAssets.editorialApproved, true))).orderBy(asc(schema.mediaAssets.title))
     return rows.map((row) => ({ id: row.id, title: row.title, artist: row.artist, album: row.album, path: row.path, kind: row.kind, durationSeconds: row.durationSeconds, artworkUrl: row.artworkUrl, enabled: row.enabled, programmeEligible: row.privacyVerified && row.editorialApproved }))
   }

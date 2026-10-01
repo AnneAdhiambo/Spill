@@ -12,7 +12,8 @@
   "dependencies": {
     "@blocktek/radio-core": "workspace:*",
     "@blocktek/types": "workspace:*",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "nostr-tools": "^1.8.10"
   },
   "devDependencies": {
     "@types/node": "^24",

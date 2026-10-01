@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
-import type { MidnightAdapter } from "@blocktek/midnight"
-import { contentCommitment } from "@blocktek/midnight"
+// Midnight and its types removed during Phase 2 cleanup. Provide minimal
+// stand-ins so other parts of the API can compile until privacy flows are
+// fully removed.
 import type { Contribution, ContributionAuditEvent, ContributionContentType, ContributionState, EditorialReview, EditorialStatus, PrivacyVerification, PrivacyVerificationStatus, ApprovedContributionMetadata } from "@blocktek/types"
 import postgres from "postgres"
 
@@ -10,14 +11,14 @@ export type ProofInput = { claimType: string; proofReference: string; disclosedA
 export type ReviewInput = { status: Exclude<EditorialStatus, "PENDING">; reason: string | null }
 
 export type PrivacyStore = {
-  create(input: ContributionInput, actor: PrivacyActor): Promise<Contribution>
-  list(actor: PrivacyActor): Promise<Contribution[]>
-  get(id: string, actor: PrivacyActor): Promise<Contribution | null>
-  verify(id: string, proof: ProofInput, actor: PrivacyActor, midnight: MidnightAdapter): Promise<{ contribution: Contribution; verification: PrivacyVerification }>
-  privacyStatus(id: string, actor: PrivacyActor): Promise<{ contribution: Contribution; verification: Omit<PrivacyVerification, "proofReference"> | null }>
-  review(id: string, input: ReviewInput, actor: PrivacyActor): Promise<{ contribution: Contribution; review: EditorialReview }>
-  approve(id: string, actor: PrivacyActor): Promise<Contribution>
-  audit(id: string, actor: PrivacyActor): Promise<ContributionAuditEvent[]>
+  create?(input: ContributionInput, actor: PrivacyActor): Promise<Contribution>
+  list?(actor: PrivacyActor): Promise<Contribution[]>
+  get?(id: string, actor: PrivacyActor): Promise<Contribution | null>
+  verify?(id: string, proof: ProofInput, actor: PrivacyActor): Promise<{ contribution: Contribution; verification: PrivacyVerification }>
+  privacyStatus?(id: string, actor: PrivacyActor): Promise<{ contribution: Contribution; verification: Omit<PrivacyVerification, "proofReference"> | null }>
+  review?(id: string, input: ReviewInput, actor: PrivacyActor): Promise<{ contribution: Contribution; review: EditorialReview }>
+  approve?(id: string, actor: PrivacyActor): Promise<Contribution>
+  audit?(id: string, actor: PrivacyActor): Promise<ContributionAuditEvent[]>
   counts(): Promise<{ pending: number; verified: number; approved: number }>
   programmable(): Promise<ApprovedContributionMetadata[]>
   close(): Promise<void>
@@ -58,7 +59,9 @@ function newContribution(input: ContributionInput, actor: PrivacyActor): StoredC
     id: randomUUID(), contributorId: actor.id, mediaAssetId: input.contentReference, contentType: input.contentType,
     title: input.title, description: input.description, contentReference: input.contentReference,
     state: "PRIVACY_VERIFICATION_PENDING", privacyStatus: "PENDING", editorialStatus: "PENDING", programmingEligible: false,
-    contentCommitment: contentCommitment(input), createdAt: now, updatedAt: now,
+    // contentCommitment originally used Midnight's content commitment; replace
+    // with a simple UUID-based placeholder for now.
+    contentCommitment: `commitment-${randomUUID()}`, createdAt: now, updatedAt: now,
   }
 }
 

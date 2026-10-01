@@ -23,6 +23,32 @@ async function run() {
   const store = new BroadcastStore(env.DATABASE_URL); await store.syncMediaAssets(items); await store.recoverAiQueue(); const mount = env.ICECAST_MOUNT || "/live"; const sessionId = await store.startSession(env.RADIO_STATION_ID || "spill-main", mount)
   const sourceUrl = `icecast://${encodeURIComponent(env.ICECAST_SOURCE_USER || "source")}:${encodeURIComponent(env.ICECAST_SOURCE_PASSWORD)}@${env.ICECAST_HOST}:${env.ICECAST_PORT || "8000"}${mount}`
   let stopping = false; let currentIndex = -1
+  // Start a background ingest watcher: prefer fs.watch, fallback to polling every 30s
+  const mediaRootPath = mediaRoot
+  const startIngestScan = async () => {
+    try {
+      const newItems = await discoverMedia(mediaRootPath, env.FALLBACK_AUDIO_PATH, bool(env.RADIO_TEST_TONE_ENABLED))
+      if (newItems.length) await store.syncMediaAssets(newItems)
+    } catch (err) {
+      log("ingest-scan-failed", { error: err instanceof Error ? err.message : String(err) })
+    }
+  }
+  try {
+    // Try to use a filesystem watcher first
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = await import("fs")
+    const watcher = fs.watch(mediaRootPath, { recursive: true }, () => void startIngestScan())
+    // Also run an initial scan now
+    void startIngestScan()
+    // Fallback periodic scan every 30s to catch missed events
+    const pollMs = Number(env.RADIO_INGEST_POLL_MS || 30000)
+    setInterval(() => void startIngestScan(), pollMs)
+  } catch (err) {
+    // If watcher not available, fallback to polling only
+    const pollMs = Number(env.RADIO_INGEST_POLL_MS || 30000)
+    setInterval(() => void startIngestScan(), pollMs)
+    void startIngestScan()
+  }
   const nextItem = async () => { const aiItem = await store.claimNextAiItem(); if (aiItem) return aiItem; currentIndex = (currentIndex + 1) % items.length; const programmeTitle = await store.currentProgrammeTitle(); return selectBroadcastItem(programmeTitle ? { startTime: "", endTime: "", title: programmeTitle } : null, items[currentIndex], null) }
   const shutdown = async (signal: string) => { if (stopping) return; stopping = true; log("broadcast stopping", { signal }); await store.stopSession(sessionId); await store.close() }
   process.once("SIGTERM", () => void shutdown("SIGTERM")); process.once("SIGINT", () => void shutdown("SIGINT"))

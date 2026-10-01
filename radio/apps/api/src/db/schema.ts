@@ -102,6 +102,7 @@ export const mediaAssets = pgTable("media_assets", {
   artworkUrl: text("artwork_url"),
   enabled: boolean("enabled").notNull().default(true),
   contributionId: text("contribution_id"),
+  // OPEN QUESTION: replace with a proper eligible flag before Phase 7 drops the privacy tables.
   privacyVerified: boolean("privacy_verified").notNull().default(true),
   editorialApproved: boolean("editorial_approved").notNull().default(true),
   ...timestamps,
