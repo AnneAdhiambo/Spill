@@ -1,7 +1,12 @@
 import { SimplePool, finalizeEvent } from "nostr-tools";
 import type { Event, Filter } from "nostr-tools";
 import { unlockIdentity, hasStoredIdentity } from "../../features/identity/keys";
-import { communities as mockCommunities, reports as mockReports } from "../../data/communityReports";
+import {
+  communities as mockCommunities,
+  reports as mockReports,
+  type ReportItem,
+  type SensitiveReason,
+} from "../../data/communityReports";
 
 export type Community = {
   id: string;
@@ -19,6 +24,15 @@ export type CommunityPost = {
   likes?: number;
   comments?: number;
   authorName?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  sensitiveReason?: SensitiveReason;
+};
+
+export type PostAttachment = {
+  imageUrl: string;
+  imageAlt: string;
+  sensitiveReason?: SensitiveReason;
 };
 
 const RELAYS = ["wss://relay.damus.io", "wss://relay.nostr.band"];
@@ -28,6 +42,8 @@ const pool = new SimplePool();
 const DUMMY_ADMIN_PUBKEY = "0000000000000000000000000000000000000000000000000000000000000000";
 
 class CommunityService {
+  private readonly localPostsKey = "spill.community-posts";
+
   async getCommunities(): Promise<Community[]> {
     return mockCommunities.map((c, index) => ({
       id: `group-${index}`,
@@ -74,7 +90,7 @@ class CommunityService {
     return raw ? JSON.parse(raw) : [];
   }
 
-  async getPosts(communityId: string): Promise<CommunityPost[]> {
+  async getPosts(communityId: string): Promise<(CommunityPost | ReportItem)[]> {
     const filter: Filter = {
       kinds: [1],
       "#a": [`39000:${DUMMY_ADMIN_PUBKEY}:${communityId}`],
@@ -88,8 +104,7 @@ class CommunityService {
       console.warn("Relay query failed", err);
     }
 
-    if (events.length > 0) {
-      return events
+    const remotePosts = events
         .sort((a, b) => b.created_at - a.created_at)
         .map((ev) => ({
           id: ev.id,
@@ -99,23 +114,32 @@ class CommunityService {
           likes: 0,
           comments: 0,
         }));
+
+    const localPosts = this.getLocalPosts(communityId);
+    const localPostsById = new Map(localPosts.map((post) => [post.id, post]));
+    const remotePostIds = new Set(remotePosts.map((post) => post.id));
+    const uniqueLocalPosts = localPosts.filter((post) => !remotePostIds.has(post.id));
+    const hydratedRemotePosts = remotePosts.map((post) => {
+      const localPost = localPostsById.get(post.id);
+      return localPost?.imageUrl ? { ...post, ...localPost } : post;
+    });
+
+    if (hydratedRemotePosts.length > 0 || uniqueLocalPosts.length > 0) {
+      return [...uniqueLocalPosts, ...hydratedRemotePosts];
     }
 
     const mockId = communityId === "group-1" ? "gbv" : communityId === "group-2" ? "journalism" : "activism";
     const filteredMock = mockReports.filter(r => r.community === mockId || r.community === "activism");
     
-    return filteredMock.map(r => ({
-      id: r.id,
-      content: `${r.title}\n\n${r.excerpt}`,
-      pubkey: "mock-pubkey",
-      authorName: r.identityMode,
-      createdAt: Math.floor(Date.now() / 1000) - 3600,
-      likes: r.likes,
-      comments: r.comments,
-    }));
+    return filteredMock;
   }
 
-  async createPost(communityId: string, content: string, passcode: string): Promise<CommunityPost> {
+  async createPost(
+    communityId: string,
+    content: string,
+    passcode: string,
+    attachment?: PostAttachment,
+  ): Promise<CommunityPost> {
     if (!hasStoredIdentity()) throw new Error("Please sign in first.");
     
     const { privateKeyHex, npub } = await unlockIdentity(passcode);
@@ -131,9 +155,13 @@ class CommunityService {
       content,
     }, sk);
 
-    await Promise.any(pool.publish(RELAYS, event));
+    try {
+      await Promise.any(pool.publish(RELAYS, event));
+    } catch (error) {
+      console.warn("Post could not reach a relay and was saved locally instead.", error);
+    }
 
-    return {
+    const post: CommunityPost = {
       id: event.id,
       content: event.content,
       pubkey: event.pubkey,
@@ -141,7 +169,34 @@ class CommunityService {
       createdAt: event.created_at,
       likes: 0,
       comments: 0,
+      ...attachment,
     };
+
+    this.saveLocalPost(communityId, post);
+    return post;
+  }
+
+  private getLocalPosts(communityId: string): CommunityPost[] {
+    try {
+      const stored = localStorage.getItem(this.localPostsKey);
+      if (!stored) return [];
+      const posts = JSON.parse(stored) as Array<CommunityPost & { communityId: string }>;
+      return posts
+        .filter((post) => post.communityId === communityId)
+        .sort((a, b) => b.createdAt - a.createdAt);
+    } catch {
+      return [];
+    }
+  }
+
+  private saveLocalPost(communityId: string, post: CommunityPost): void {
+    try {
+      const stored = localStorage.getItem(this.localPostsKey);
+      const posts = stored ? JSON.parse(stored) as Array<CommunityPost & { communityId: string }> : [];
+      localStorage.setItem(this.localPostsKey, JSON.stringify([{ ...post, communityId }, ...posts]));
+    } catch (error) {
+      console.warn("Could not save the local community post.", error);
+    }
   }
   
   hasIdentity(): boolean {

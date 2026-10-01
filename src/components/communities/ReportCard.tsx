@@ -24,7 +24,10 @@ export default function ReportCard({ report }: ReportCardProps) {
   const staticReport = isPost ? null : report;
   const title = staticReport?.title ?? "";
   const excerpt = isPost ? report.content : staticReport?.excerpt ?? "";
-  const hasMedia = Boolean(staticReport?.imageUrl && staticReport.imageAlt);
+  const imageUrl = isPost ? report.imageUrl : staticReport?.imageUrl;
+  const imageAlt = isPost ? report.imageAlt : staticReport?.imageAlt;
+  const sensitiveReason = isPost ? report.sensitiveReason : staticReport?.sensitiveReason;
+  const hasMedia = Boolean(imageUrl && imageAlt);
   const timeAgo = isPost
     ? new Date(report.createdAt * 1000).toLocaleString()
     : staticReport?.timeAgo ?? "";
@@ -37,14 +40,14 @@ export default function ReportCard({ report }: ReportCardProps) {
     <article className={`report-card${hasMedia ? "" : " report-card--text-only"}`}>
       {hasMedia && staticReport && (
         <div className="report-image-wrap">
-          {staticReport.sensitiveReason ? (
+          {sensitiveReason ? (
             <SensitiveMedia
-              src={staticReport.imageUrl!}
-              alt={staticReport.imageAlt!}
-              reason={staticReport.sensitiveReason}
+              src={imageUrl!}
+              alt={imageAlt!}
+              reason={sensitiveReason}
             />
           ) : (
-            <img className="report-image" src={staticReport.imageUrl} alt={staticReport.imageAlt} />
+            <img className="report-image" src={imageUrl} alt={imageAlt} />
           )}
         </div>
       )}
