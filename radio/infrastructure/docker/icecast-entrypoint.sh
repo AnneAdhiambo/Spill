@@ -3,14 +3,14 @@ set -eu
 
 : "${ICECAST_SOURCE_PASSWORD:?ICECAST_SOURCE_PASSWORD is required}"
 : "${ICECAST_ADMIN_PASSWORD:?ICECAST_ADMIN_PASSWORD is required}"
-# Relay authentication is unused while BlockTek has no configured upstream relays.
+# Relay authentication is unused while Spill has no configured upstream relays.
 # Keep a non-secret default so source/admin credentials remain the only required auth.
 ICECAST_RELAY_PASSWORD=${ICECAST_RELAY_PASSWORD:-disabled}
 
 umask 077
 cat > /data/icecast.xml <<EOF
 <icecast>
-  <location>BlockTek Radio</location>
+  <location>Spill</location>
   <admin>operator@localhost</admin>
   <limits>
     <clients>${ICECAST_MAX_CLIENTS:-100}</clients>
@@ -31,7 +31,7 @@ cat > /data/icecast.xml <<EOF
   </authentication>
   <hostname>${ICECAST_HOSTNAME:-localhost}</hostname>
   <listen-socket><port>8000</port></listen-socket>
-  <http-headers><header name="Access-Control-Allow-Origin" value="${ICECAST_CORS_ORIGIN:-https://blockteck-radio.vercel.app}" /></http-headers>
+  <http-headers><header name="Access-Control-Allow-Origin" value="${ICECAST_CORS_ORIGIN:-http://localhost:5173}" /></http-headers>
   <paths>
     <basedir>/usr/local/share/icecast</basedir>
     <logdir>/tmp/icecast</logdir>

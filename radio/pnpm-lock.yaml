@@ -20,9 +20,6 @@ importers:
       '@blocktek/ai':
         specifier: workspace:*
         version: link:packages/ai
-      '@blocktek/midnight':
-        specifier: workspace:*
-        version: link:packages/midnight
       '@blocktek/radio-core':
         specifier: workspace:*
         version: link:packages/radio-core
@@ -105,9 +102,6 @@ importers:
       '@blocktek/ai':
         specifier: workspace:*
         version: link:../../packages/ai
-      '@blocktek/midnight':
-        specifier: workspace:*
-        version: link:../../packages/midnight
       '@blocktek/types':
         specifier: workspace:*
         version: link:../../packages/types
