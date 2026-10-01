@@ -9,6 +9,7 @@ import UnlockStep from "../components/identity/UnlockStep";
 import DoneStep from "../components/identity/DoneStep";
 import {
   createIdentity,
+  beginIdentitySession,
   saveIdentity,
   hasStoredIdentity,
   unlockIdentity,
@@ -52,6 +53,7 @@ export default function GetStartedPage() {
     setSubmitting(true);
     try {
       await saveIdentity(identity, passcode);
+      beginIdentitySession();
       setFinalNpub(identity.npub);
       setStep("done");
     } finally {
@@ -64,6 +66,7 @@ export default function GetStartedPage() {
     setUnlockError(null);
     try {
       const { npub } = await unlockIdentity(passcode);
+      beginIdentitySession();
       setFinalNpub(npub);
       setStep("done");
     } catch (e) {

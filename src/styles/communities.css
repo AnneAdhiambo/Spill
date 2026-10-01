@@ -147,6 +147,7 @@
 .report-excerpt {
   margin: 6px 0 8px; color: #53504a; font-size: 17px; line-height: 1.35;
 }
+.report-excerpt--formatted { white-space: pre-wrap; }
 .report-meta-actions {
   min-height: 34px; display: flex; align-items: center; margin-top: 2px;
 }
@@ -164,6 +165,84 @@
   color: #ff5f18 !important; background: #fff8f2 !important; font-weight: 800;
 }
 .zap-button svg { fill: currentColor; }
+
+.zap-modal-backdrop {
+  position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 20px;
+  background: rgba(10, 8, 7, .62); backdrop-filter: blur(5px);
+}
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.zap-modal {
+  position: relative; width: min(100%, 500px); max-height: min(760px, calc(100dvh - 40px)); overflow-y: auto;
+  padding: 30px; border: 1px solid #e6ddd3; border-radius: 24px; color: #17120f; background: #fffdfa;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .28);
+}
+.zap-modal-close {
+  position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border: 1px solid #e7ded5; border-radius: 999px;
+  color: #4b443e; background: #fff; display: grid; place-items: center;
+}
+.zap-modal-kicker { display: inline-flex; align-items: center; gap: 7px; color: #f05020; font-size: 12px; font-weight: 900; letter-spacing: .17em; }
+.zap-modal h2 { margin: 10px 38px 4px 0; font-size: 28px; line-height: 1.05; letter-spacing: -.035em; }
+.zap-modal-target { margin: 0; color: #736a62; font-size: 15px; }
+.zap-send-screen { text-align: center; }
+.zap-send-screen .zap-create-invoice { margin-top: 22px; }
+.zap-recipient-label { margin: 0; color: #7a7067; font-size: 13px; font-weight: 700; }
+.zap-send-screen h2 { margin: 7px 0 28px; font-size: 20px; }
+.zap-wallet-amount { display: inline-flex; align-items: baseline; justify-content: center; gap: 8px; max-width: 100%; border-bottom: 2px solid #dfd4c9; }
+.zap-wallet-amount input { width: min(100%, 230px); border: 0; outline: 0; color: #17120f; background: transparent; text-align: right; font-size: clamp(40px, 10vw, 58px); font-weight: 850; letter-spacing: -.06em; }
+.zap-wallet-amount span { color: #6f655d; font-size: 18px; font-weight: 800; }
+.zap-usd-estimate { margin: 9px 0 0; color: #8a7d72; font-size: 14px; font-weight: 650; }
+.zap-balance-line { margin: 22px 0 0; color: #756a61; font-size: 13px; }
+.zap-balance-line strong { color: #2f2822; }
+.zap-source-options { display: grid; gap: 9px; margin: 22px 0 0; padding: 0; border: 0; text-align: left; }
+.zap-source-options legend { margin-bottom: 1px; color: #403831; font-size: 14px; font-weight: 850; }
+.zap-source-options button { display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 10px; width: 100%; padding: 13px; border: 1px solid #e2d9d0; border-radius: 14px; color: #5f544c; background: #fff; text-align: left; }
+.zap-source-options button.is-selected { border-color: #ff8550; background: #fff7f1; }
+.zap-source-options svg { color: #ff5727; }
+.zap-source-options strong, .zap-source-options small { display: block; }
+.zap-source-options strong { color: #2d2722; font-size: 14px; }
+.zap-source-options small { margin-top: 3px; color: #766c64; font-size: 12px; line-height: 1.35; }
+.zap-confirm-screen .zap-modal-kicker, .zap-invoice-preview .zap-modal-kicker { margin-top: 14px; }
+.zap-inline-back { display: inline-flex; align-items: center; gap: 6px; margin: -5px 0 6px; border: 0; color: #80604c; background: transparent; font-size: 13px; font-weight: 800; }
+.zap-review-details { display: grid; gap: 10px; margin: 24px 0 0; padding: 14px; border: 1px solid #e7ddd4; border-radius: 14px; }
+.zap-review-details div { display: flex; justify-content: space-between; gap: 18px; color: #6e6259; font-size: 14px; }
+.zap-review-details dd { margin: 0; color: #28211c; font-weight: 800; text-align: right; }
+.zap-amounts, .zap-privacy-options { margin: 26px 0 0; padding: 0; border: 0; }
+.zap-amounts legend, .zap-privacy-options legend { margin-bottom: 10px; color: #403831; font-size: 14px; font-weight: 850; }
+.zap-amount-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.zap-amount-options > button, .zap-custom-amount { min-height: 45px; border: 1px solid #ded5cc; border-radius: 12px; color: #3c342d; background: #fff; font-size: 13px; font-weight: 800; }
+.zap-amount-options > button.is-selected { border-color: transparent; color: #fff; background: var(--brand-gradient); }
+.zap-custom-amount { display: flex; align-items: center; gap: 3px; padding: 0 9px; }
+.zap-custom-amount input { width: 100%; min-width: 0; border: 0; outline: 0; color: inherit; background: transparent; font: inherit; }
+.zap-custom-amount span { color: #837970; font-size: 11px; }
+.zap-privacy-options { display: grid; gap: 9px; }
+.zap-privacy-options label { display: grid; grid-template-columns: auto 22px 1fr; align-items: start; gap: 10px; padding: 13px; border: 1px solid #e2d9d0; border-radius: 14px; color: #5f544c; background: #fff; }
+.zap-privacy-options label.is-selected { border-color: #ff8550; background: #fff7f1; }
+.zap-privacy-options input { margin: 3px 0 0; accent-color: #ff4a24; }
+.zap-privacy-options svg { margin-top: 1px; color: #ff5727; }
+.zap-privacy-options strong, .zap-privacy-options small { display: block; }
+.zap-privacy-options strong { color: #2d2722; font-size: 14px; }
+.zap-privacy-options small { margin-top: 3px; color: #766c64; font-size: 12px; line-height: 1.35; }
+.zap-payment-options { display: grid; gap: 9px; margin: 26px 0 0; padding: 0; border: 0; }
+.zap-payment-options legend { margin-bottom: 1px; color: #403831; font-size: 14px; font-weight: 850; }
+.zap-payment-options button { width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 13px; border: 1px solid #e2d9d0; border-radius: 14px; color: #5f544c; background: #fff; text-align: left; }
+.zap-payment-options button.is-selected { border-color: #ff8550; background: #fff7f1; }
+.zap-payment-options svg { color: #ff5727; }
+.zap-payment-options strong, .zap-payment-options small { display: block; }
+.zap-payment-options strong { color: #2d2722; font-size: 14px; }
+.zap-payment-options small { margin-top: 3px; color: #766c64; font-size: 12px; line-height: 1.35; }
+.zap-payment-options b { padding: 6px 8px; border-radius: 999px; color: #9a521d; background: #fff0e4; font-size: 11px; white-space: nowrap; }
+.zap-modal-note { margin: 16px 0; color: #786d63; font-size: 12px; line-height: 1.4; }
+.zap-create-invoice, .zap-copy-invoice { width: 100%; min-height: 48px; border: 0; border-radius: 13px; color: #fff; background: var(--brand-gradient); font-weight: 850; }
+.zap-invoice-preview > p { color: #6f655d; line-height: 1.45; }
+.zap-qr-placeholder { width: 170px; height: 170px; margin: 24px auto; border: 1px solid #e7ddd4; border-radius: 18px; color: #201b17; background: repeating-linear-gradient(45deg, #f6f1eb 0 4px, #fff 4px 8px); display: grid; place-items: center; }
+.zap-invoice-copy { font-size: 14px; }
+.zap-copy-invoice { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.zap-copy-invoice:disabled { cursor: not-allowed; opacity: .62; }
+.zap-back-button { width: 100%; margin-top: 10px; min-height: 40px; border: 0; color: #7c5141; background: transparent; font-weight: 750; }
+.zap-back-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.zap-complete-preview { text-align: center; }
+.zap-complete-preview h2 { margin-right: 0; }
+.zap-complete-icon { display: block; margin: 24px auto; color: #1a9b58; }
 
 .sensitive-media {
   position: relative; overflow: hidden; border-radius: 18px; min-height: 188px;
@@ -395,6 +474,48 @@
 :root[data-theme="dark"] .zap-button {
   color: #ff9a59 !important;
   background: #25150d !important;
+}
+
+:root[data-theme="dark"] .zap-modal { border-color: rgba(255,255,255,.14); color: #faf7f2; background: #171311; }
+:root[data-theme="dark"] .zap-modal-close { border-color: rgba(255,255,255,.16); color: #f4ece4; background: #241d19; }
+:root[data-theme="dark"] .zap-modal-target,
+:root[data-theme="dark"] .zap-modal-note,
+:root[data-theme="dark"] .zap-invoice-preview > p,
+:root[data-theme="dark"] .zap-privacy-options small { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-amounts legend,
+:root[data-theme="dark"] .zap-privacy-options legend,
+:root[data-theme="dark"] .zap-payment-options legend,
+:root[data-theme="dark"] .zap-privacy-options strong { color: #f8f2ec; }
+:root[data-theme="dark"] .zap-amount-options > button,
+:root[data-theme="dark"] .zap-custom-amount,
+:root[data-theme="dark"] .zap-privacy-options label,
+:root[data-theme="dark"] .zap-payment-options button { border-color: rgba(255,255,255,.15); color: #eee6de; background: #211a16; }
+:root[data-theme="dark"] .zap-custom-amount input { color: #fff; }
+:root[data-theme="dark"] .zap-privacy-options label.is-selected,
+:root[data-theme="dark"] .zap-payment-options button.is-selected { border-color: #ff8051; background: #321a13; }
+:root[data-theme="dark"] .zap-payment-options strong { color: #f8f2ec; }
+:root[data-theme="dark"] .zap-payment-options small { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-payment-options b { color: #ffbd8d; background: #402013; }
+:root[data-theme="dark"] .zap-wallet-amount { border-color: rgba(255,255,255,.2); }
+:root[data-theme="dark"] .zap-wallet-amount input { color: #faf7f2; }
+:root[data-theme="dark"] .zap-wallet-amount span,
+:root[data-theme="dark"] .zap-usd-estimate,
+:root[data-theme="dark"] .zap-balance-line { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-balance-line strong,
+:root[data-theme="dark"] .zap-source-options strong,
+:root[data-theme="dark"] .zap-review-details dd { color: #faf7f2; }
+:root[data-theme="dark"] .zap-source-options legend { color: #f8f2ec; }
+:root[data-theme="dark"] .zap-source-options button { border-color: rgba(255,255,255,.15); color: #eee6de; background: #211a16; }
+:root[data-theme="dark"] .zap-source-options button.is-selected { border-color: #ff8051; background: #321a13; }
+:root[data-theme="dark"] .zap-source-options small { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-review-details { border-color: rgba(255,255,255,.14); }
+:root[data-theme="dark"] .zap-review-details div { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-qr-placeholder { border-color: rgba(255,255,255,.15); color: #211b16; background: repeating-linear-gradient(45deg, #eee7de 0 4px, #fff 4px 8px); }
+
+@media (max-width: 520px) {
+  .zap-modal-backdrop { padding: 12px; }
+  .zap-modal { padding: 26px 20px 20px; border-radius: 20px; }
+  .zap-amount-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 :root[data-theme="dark"] .community-list-item {
