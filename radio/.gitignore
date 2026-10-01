@@ -32,3 +32,4 @@ packages/midnight/midnight-level-db/
 .DS_Store
 next-env.d.ts
 tmp_*.log
+media/uploads/

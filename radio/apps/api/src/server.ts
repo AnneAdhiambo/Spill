@@ -19,13 +19,56 @@ import { readFile } from "node:fs/promises"
 import { Redis } from "ioredis"
 import { unlink } from "node:fs/promises"
 import os from "node:os"
-import { randomUUID } from "node:crypto"
+import { randomUUID, createHash } from "node:crypto"
+import { mkdir, writeFile } from "node:fs/promises"
+import { dirname, isAbsolute, join, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import { transcribeFile, TranscribeError } from "../../shared/src/transcriber.js"
 // Privacy flows (Midnight) removed. Use a minimal in-memory placeholder that
 // satisfies the small subset of methods the server expects during Phase 2.
 type PrivacyActor = { id: string; role: "CONTRIBUTOR" | "EDITOR" | "ADMIN" }
 type PrivacyStore = { counts(): Promise<{ pending: number; verified: number; approved: number }>; programmable(): Promise<any[]>; close(): Promise<void> }
 const InMemoryPrivacyStore = () => ({ counts: async () => ({ pending: 0, verified: 0, approved: 0 }), programmable: async () => [], close: async () => {} }) as PrivacyStore
+
+const RADIO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..")
+
+function sniffImage(b: Buffer): "image/jpeg" | "image/png" | "image/webp" | null {
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg"
+  if (b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png"
+  if (b.length > 12 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "image/webp"
+  return null
+}
+
+/** True if the file still carries EXIF/XMP/IPTC/text metadata blocks. */
+function imageHasMetadata(b: Buffer, type: string): boolean {
+  if (type === "image/jpeg") {
+    let i = 2
+    while (i + 4 < b.length && b[i] === 0xff) {
+      const marker = b[i + 1]
+      if (marker === 0xda || marker === 0xd9) break // start of scan / end of image
+      if (marker === 0xe1 || marker === 0xed) return true // APP1 (EXIF/XMP), APP13 (IPTC)
+      i += 2 + b.readUInt16BE(i + 2)
+    }
+    return false
+  }
+  if (type === "image/png") {
+    let i = 8
+    while (i + 8 <= b.length) {
+      const len = b.readUInt32BE(i), name = b.toString("ascii", i + 4, i + 8)
+      if (name === "eXIf" || name === "iTXt" || name === "tEXt" || name === "zTXt" || name === "tIME") return true
+      if (name === "IDAT") break
+      i += 12 + len
+    }
+    return false
+  }
+  let i = 12
+  while (i + 8 <= b.length) {
+    const name = b.toString("ascii", i, i + 4), len = b.readUInt32LE(i + 4)
+    if (name === "EXIF" || name === "XMP ") return true
+    i += 8 + len + (len % 2)
+  }
+  return false
+}
 
 const transitionBodySchema = z.object({ to: submissionStateSchema })
 const submissionBodySchema = z.object({
@@ -271,6 +314,40 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
       serverTime: new Date().toISOString(),
       transcriptOffsetMs: config.RADIO_TRANSCRIPT_OFFSET_MS,
     } })
+  })
+
+  // ---- Media store: cleaned photos only, stored by SHA-256 and served at /media/<sha256>. ----
+  const uploadsDir = isAbsolute(config.MEDIA_ROOT) ? join(config.MEDIA_ROOT, "uploads") : join(RADIO_ROOT, config.MEDIA_ROOT, "uploads")
+  const MEDIA_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
+  const mediaHits = new Map<string, number[]>()
+  app.post("/api/v1/media", async (request, reply) => {
+    const now = Date.now()
+    const hits = (mediaHits.get(request.ip) || []).filter((t) => now - t < 60_000)
+    if (hits.length >= 20) return reply.code(429).send({ error: "RATE_LIMITED" })
+    hits.push(now); mediaHits.set(request.ip, hits)
+    const file = await (request as FastifyRequest).file?.({ limits: { fileSize: 5 * 1024 * 1024 } })
+    if (!file) return reply.code(400).send({ error: "NO_FILE" })
+    const buf = await file.toBuffer()
+    if (file.file.truncated) return reply.code(413).send({ error: "FILE_TOO_LARGE" })
+    const type = sniffImage(buf)
+    if (!type) return reply.code(415).send({ error: "UNSUPPORTED_TYPE" })
+    // The client strips metadata before upload; refuse anything that still carries it.
+    if (imageHasMetadata(buf, type)) return reply.code(422).send({ error: "METADATA_PRESENT" })
+    const sha256 = createHash("sha256").update(buf).digest("hex")
+    await mkdir(uploadsDir, { recursive: true })
+    await writeFile(join(uploadsDir, `${sha256}.${MEDIA_EXT[type]}`), buf)
+    return reply.code(201).send({ sha256, url: `${request.protocol}://${request.headers.host}/media/${sha256}`, type, size: buf.length })
+  })
+  app.get("/media/:sha", async (request, reply) => {
+    const { sha } = request.params as { sha: string }
+    if (!/^[a-f0-9]{64}$/.test(sha)) return reply.code(404).send({ error: "NOT_FOUND" })
+    for (const [type, ext] of Object.entries(MEDIA_EXT)) {
+      try {
+        const data = await readFile(join(uploadsDir, `${sha}.${ext}`))
+        return reply.header("content-type", type).header("cache-control", "public, max-age=31536000, immutable").header("cross-origin-resource-policy", "cross-origin").send(data)
+      } catch { /* try next extension */ }
+    }
+    return reply.code(404).send({ error: "NOT_FOUND" })
   })
 
   app.get("/api/v1/submissions/:id", async (request, reply) => {
