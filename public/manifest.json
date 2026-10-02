@@ -1,0 +1,20 @@
+{
+  "name": "Spill — Real Stories, Stronger Communities",
+  "short_name": "Spill",
+  "description": "Decentralized anonymous reporting, peer-to-peer support, and community audio spaces.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0D0C0B",
+  "theme_color": "#ff5727",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/spill-logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "news", "finance"]
+}
