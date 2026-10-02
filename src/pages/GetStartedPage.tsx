@@ -10,6 +10,7 @@ import {
   type Identity,
 } from "../features/identity/keys";
 import { publishProfile } from "../services/nostr/identityService";
+import { publishNutzapConfiguration } from "../services/nostr/nutzapService";
 
 type Step = "welcome" | "save" | "import" | "done";
 type RelayStatus = "none" | "pending" | "ok" | "failed";
@@ -64,6 +65,7 @@ export default function GetStartedPage() {
 
     setRelayStatus("pending");
     publishProfile(draft.privateKeyHex).then((ok) => setRelayStatus(ok ? "ok" : "failed"));
+    publishNutzapConfiguration().catch(() => undefined);
 
     setStep("done");
   }
@@ -76,6 +78,7 @@ export default function GetStartedPage() {
       beginIdentitySession();
       setNpub(identity.npub);
       setStoredNpub(identity.npub);
+      publishNutzapConfiguration().catch(() => undefined);
       setImportValue("");
       setStep("done");
     } catch (err) {

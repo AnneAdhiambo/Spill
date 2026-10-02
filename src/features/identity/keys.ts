@@ -14,11 +14,15 @@ export interface Identity {
   privateKeyHex: string;
   npub: string;
   nsec: string;
+  /** Separate Cashu P2PK key; never use the Nostr event-signing key for nutzaps. */
+  nutzapPrivateKeyHex: string;
+  nutzapPubkey: string;
 }
 
 interface StoredIdentity {
   npub: string;
   nsec: string;
+  nutzapPrivateKeyHex?: string;
 }
 
 // ---- key generation / import ------------------------------------------
@@ -59,17 +63,28 @@ function decodeNsec(nsec: string): Uint8Array {
 }
 
 function fromSecretKey(sk: Uint8Array): Identity {
+  const nutzapSecretKey = generateSecretKey();
   return {
     privateKeyHex: bytesToHex(sk),
     npub: nip19.npubEncode(getPublicKey(sk)),
     nsec: nip19.nsecEncode(sk),
+    nutzapPrivateKeyHex: bytesToHex(nutzapSecretKey),
+    nutzapPubkey: getPublicKey(nutzapSecretKey),
   };
 }
 
 // ---- storage -----------------------------------------------------------
 
-export function saveIdentity(identity: Pick<Identity, "npub" | "nsec">): void {
-  const record: StoredIdentity = { npub: identity.npub, nsec: identity.nsec };
+export function saveIdentity(identity: Pick<Identity, "npub" | "nsec"> & Partial<Identity>): void {
+  let nutzapPrivateKeyHex = identity.nutzapPrivateKeyHex;
+  if (!nutzapPrivateKeyHex) {
+    nutzapPrivateKeyHex = bytesToHex(generateSecretKey());
+  }
+  const record: StoredIdentity = {
+    npub: identity.npub,
+    nsec: identity.nsec,
+    nutzapPrivateKeyHex,
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
   localStorage.removeItem(LEGACY_STORAGE_KEY);
 }
@@ -90,16 +105,31 @@ export function getStoredNpub(): string | null {
 
 /**
  * Returns the saved key. The passcode argument is ignored: it only exists so
- * existing callers (communityService) keep working now that there is no passcode.
+ * existing callers keep working now that there is no passcode.
  */
 export async function unlockIdentity(
   _passcode?: string
-): Promise<{ privateKeyHex: string; npub: string }> {
+): Promise<{ privateKeyHex: string; npub: string; nutzapPrivateKeyHex: string; nutzapPubkey: string }> {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) throw new Error("No saved identity on this device.");
   const record = JSON.parse(raw) as StoredIdentity;
   const sk = decodeNsec(record.nsec);
-  return { privateKeyHex: bytesToHex(sk), npub: record.npub };
+
+  let nutzapPrivateKeyHex = record.nutzapPrivateKeyHex;
+  if (!nutzapPrivateKeyHex) {
+    nutzapPrivateKeyHex = bytesToHex(generateSecretKey());
+    record.nutzapPrivateKeyHex = nutzapPrivateKeyHex;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+  }
+
+  const nutzapPubkey = getPublicKey(hexToBytes(nutzapPrivateKeyHex));
+
+  return {
+    privateKeyHex: bytesToHex(sk),
+    npub: record.npub,
+    nutzapPrivateKeyHex,
+    nutzapPubkey,
+  };
 }
 
 /** Remove the saved key from this device entirely. */
