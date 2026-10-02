@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useBitcoinUsdEstimate } from "../../hooks/useBitcoinUsdEstimate";
 import { useWallet } from "../../hooks/useWallet";
 
 type WalletModalProps = {
@@ -25,11 +24,6 @@ type WalletModalProps = {
 };
 
 type ModalSubView = "home" | "add-funds" | "add-funds-invoice" | "add-funds-success" | "receive" | "receive-success" | "backup-restore";
-
-function formatUsd(estimate: number | null) {
-  if (estimate === null) return "USD estimate unavailable";
-  return `~ ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(estimate)} USD`;
-}
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleString(undefined, {
@@ -71,9 +65,6 @@ export default function WalletModal({ onClose }: WalletModalProps) {
     const val = Number.parseInt(amountInput, 10);
     return Number.isFinite(val) && val > 0 ? val : 0;
   }, [amountInput]);
-
-  const usdEstimate = useBitcoinUsdEstimate(wallet.balance);
-  const addFundsUsdEstimate = useBitcoinUsdEstimate(parsedAmount);
 
   // Auto-polling for active invoice
   useEffect(() => {
@@ -334,7 +325,23 @@ export default function WalletModal({ onClose }: WalletModalProps) {
             <h2 id="wallet-modal-title" style={{ fontSize: "36px", marginTop: "12px" }}>
               {wallet.balance.toLocaleString()} <span style={{ fontSize: "20px", fontWeight: 700 }}>sats</span>
             </h2>
-            <p className="zap-usd-estimate">{formatUsd(usdEstimate)}</p>
+
+            {wallet.isCheckingPending && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  color: "#ff7a1a",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  marginTop: "6px",
+                }}
+              >
+                <RefreshCw size={13} className="animate-spin" />
+                <span>Checking for pending payments...</span>
+              </div>
+            )}
 
             <div
               style={{
@@ -521,7 +528,6 @@ export default function WalletModal({ onClose }: WalletModalProps) {
               />
               <span>sats</span>
             </label>
-            <p className="zap-usd-estimate">{formatUsd(addFundsUsdEstimate)}</p>
 
             <div className="zap-amount-options" style={{ margin: "20px 0" }}>
               {[10, 21, 50, 100].map((amt) => (

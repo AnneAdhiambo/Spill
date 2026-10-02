@@ -37,6 +37,7 @@ export function useWallet() {
   const [pending, setPending] = useState<PendingQuoteItem[]>([]);
   const [history, setHistory] = useState<WalletHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [isCheckingPending, setIsCheckingPending] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const syncStateFromSnapshot = useCallback((snapshot: { balance: number; pending: PendingQuoteItem[]; history: WalletHistoryItem[] }) => {
@@ -61,6 +62,7 @@ export function useWallet() {
     const savedPasscode = sessionStorage.getItem(sessionPasscodeKey);
     if (savedPasscode && hasWallet()) {
       setLoading(true);
+      setIsCheckingPending(true);
       resumePendingQuotes(savedPasscode)
         .then((snapshot) => {
           setPasscode(savedPasscode);
@@ -74,6 +76,7 @@ export function useWallet() {
         })
         .finally(() => {
           setLoading(false);
+          setIsCheckingPending(false);
         });
     }
   }, [syncStateFromSnapshot]);
@@ -81,6 +84,7 @@ export function useWallet() {
   const unlock = useCallback(async (inputPasscode: string) => {
     setError(null);
     setLoading(true);
+    setIsCheckingPending(true);
     try {
       const snapshot = await resumePendingQuotes(inputPasscode);
       sessionStorage.setItem(sessionPasscodeKey, inputPasscode);
@@ -95,6 +99,7 @@ export function useWallet() {
       return false;
     } finally {
       setLoading(false);
+      setIsCheckingPending(false);
     }
   }, [syncStateFromSnapshot]);
 
@@ -203,6 +208,7 @@ export function useWallet() {
     pending,
     history,
     loading,
+    isCheckingPending,
     error,
     setError,
     unlock,
