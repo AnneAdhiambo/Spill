@@ -7,8 +7,10 @@ import {
   Share2,
   Zap,
 } from "lucide-react";
+import { useState } from "react";
 import type { ReportItem } from "../../data/communityReports";
 import type { CommunityPost } from "../../services/nostr/communityService";
+import ZapModal from "../zaps/ZapModal";
 import MediaTrustBadge from "./MediaTrustBadge";
 import SensitiveMedia from "./SensitiveMedia";
 
@@ -17,34 +19,35 @@ type ReportCardProps = {
 };
 
 export default function ReportCard({ report }: ReportCardProps) {
-  const isPost = 'pubkey' in report;
-  
-  const title = isPost ? "" : (report as ReportItem).title;
-  const excerpt = isPost ? (report as CommunityPost).content : (report as ReportItem).excerpt;
-  const hasMedia = !isPost && Boolean((report as ReportItem).imageUrl && (report as ReportItem).imageAlt);
-  
-  const timeAgo = isPost 
-    ? new Date((report as CommunityPost).createdAt * 1000).toLocaleString() 
-    : (report as ReportItem).timeAgo;
-    
-  const authorName = isPost 
-    ? (report as CommunityPost).authorName || "Anonymous User"
-    : "Identity hidden";
-    
-  const identityMode = isPost ? "PSEUDONYMOUS" : (report as ReportItem).identityMode;
+  const [isZapModalOpen, setIsZapModalOpen] = useState(false);
+  const isPost = "pubkey" in report;
+  const staticReport = isPost ? null : report;
+  const title = staticReport?.title ?? "";
+  const excerpt = isPost ? report.content : staticReport?.excerpt ?? "";
+  const imageUrl = isPost ? report.imageUrl : staticReport?.imageUrl;
+  const imageAlt = isPost ? report.imageAlt : staticReport?.imageAlt;
+  const sensitiveReason = isPost ? report.sensitiveReason : staticReport?.sensitiveReason;
+  const hasMedia = Boolean(imageUrl && imageAlt);
+  const timeAgo = isPost
+    ? new Date(report.createdAt * 1000).toLocaleString()
+    : staticReport?.timeAgo ?? "";
+  const authorName = isPost ? report.authorName || "Anonymous User" : "Identity hidden";
+  const identityMode = isPost
+    ? "PSEUDONYMOUS"
+    : staticReport?.identityMode ?? "ANONYMOUS";
 
   return (
     <article className={`report-card${hasMedia ? "" : " report-card--text-only"}`}>
-      {hasMedia && (
+      {hasMedia && staticReport && (
         <div className="report-image-wrap">
-          {(report as ReportItem).sensitiveReason ? (
+          {sensitiveReason ? (
             <SensitiveMedia
-              src={(report as ReportItem).imageUrl!}
-              alt={(report as ReportItem).imageAlt!}
-              reason={(report as ReportItem).sensitiveReason!}
+              src={imageUrl!}
+              alt={imageAlt!}
+              reason={sensitiveReason}
             />
           ) : (
-            <img className="report-image" src={(report as ReportItem).imageUrl} alt={(report as ReportItem).imageAlt} />
+            <img className="report-image" src={imageUrl} alt={imageAlt} />
           )}
         </div>
       )}
@@ -63,47 +66,34 @@ export default function ReportCard({ report }: ReportCardProps) {
           </div>
 
           <div className="report-header-actions">
-            {!isPost && (report as ReportItem).mediaVerified ? <MediaTrustBadge /> : null}
-            <button className="ghost-icon" type="button" aria-label="More options">
-              <MoreHorizontal size={18} />
-            </button>
+            {staticReport?.mediaVerified ? <MediaTrustBadge /> : null}
+            <button className="ghost-icon" type="button" aria-label="More options"><MoreHorizontal size={18} /></button>
           </div>
         </div>
 
         {title && <h2>{title}</h2>}
-        <p className="report-excerpt" style={{ whiteSpace: "pre-wrap" }}>{excerpt}</p>
+        <p className={`report-excerpt${isPost ? " report-excerpt--formatted" : ""}`}>{excerpt}</p>
 
         <div className="report-meta-actions">
-          {!isPost && (report as ReportItem).translateLabel ? (
-            <button className="text-link" type="button">
-              <Languages size={17} />
-              {(report as ReportItem).translateLabel}
-            </button>
-          ) : (
-            <span />
-          )}
+          {staticReport?.translateLabel ? (
+            <button className="text-link" type="button"><Languages size={17} />{staticReport.translateLabel}</button>
+          ) : <span />}
         </div>
 
         <div className="report-footer">
-          <button type="button">
-            <Heart size={18} /> {report.likes || 0}
+          <button type="button"><Heart size={18} /> {report.likes || 0}</button>
+          <button type="button"><MessageCircle size={18} /> {report.comments || 0}</button>
+          <button type="button" className="zap-button" onClick={() => setIsZapModalOpen(true)}>
+            <Zap size={16} /> {staticReport?.zaps ? `Zap ${staticReport.zaps} sats` : "Zap"}
           </button>
-          <button type="button">
-            <MessageCircle size={18} /> {report.comments || 0}
-          </button>
-          {!isPost && (report as ReportItem).zaps ? (
-            <button type="button" className="zap-button">
-              <Zap size={16} /> Zap {(report as ReportItem).zaps} sats
-            </button>
-          ) : null}
-          <button type="button">
-            <Share2 size={18} /> Share
-          </button>
-          <button type="button">
-            <Bookmark size={18} /> Save
-          </button>
+          <button type="button"><Share2 size={18} /> Share</button>
+          <button type="button"><Bookmark size={18} /> Save</button>
         </div>
       </div>
+
+      {isZapModalOpen && (
+        <ZapModal initialSats={staticReport?.zaps ?? 21} targetLabel="Anonymous Reporter" onClose={() => setIsZapModalOpen(false)} />
+      )}
     </article>
   );
 }

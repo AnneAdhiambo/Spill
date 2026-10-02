@@ -1,15 +1,49 @@
-import { Camera, Heart, Leaf, Users, UsersRound } from "lucide-react"
-import type { Community } from "../../services/nostr/communityService"
+import { Camera, Heart, Leaf, Users, UsersRound } from "lucide-react";
+import { useState } from "react";
+import { communityService, type Community } from "../../services/nostr/communityService";
 
 const icons = [Users, Heart, Camera, Leaf, UsersRound]
 
 type CommunitySidebarProps = {
   communities: Community[];
   activeCommunityId: string | null;
+  joinedIds: string[];
   onSelectCommunity: (id: string) => void;
+  onJoinSuccess: () => void;
 };
 
-export default function CommunitySidebar({ communities, activeCommunityId, onSelectCommunity }: CommunitySidebarProps) {
+export default function CommunitySidebar({ communities, activeCommunityId, joinedIds, onSelectCommunity, onJoinSuccess }: CommunitySidebarProps) {
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [passcode, setPasscode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const beginJoin = (event: React.MouseEvent, communityId: string) => {
+    event.stopPropagation();
+    if (!communityService.hasIdentity()) {
+      window.location.href = "/get-started";
+      return;
+    }
+    setError(null);
+    setPasscode("");
+    setJoiningId(communityId);
+  };
+
+  const confirmJoin = async (event: React.MouseEvent, communityId: string) => {
+    event.stopPropagation();
+    if (!passcode) {
+      setError("Enter your passcode to join.");
+      return;
+    }
+    try {
+      await communityService.joinCommunity(communityId, passcode);
+      setJoiningId(null);
+      setPasscode("");
+      onJoinSuccess();
+    } catch (joinError) {
+      setError(joinError instanceof Error ? joinError.message : "Could not join this community.");
+    }
+  };
+
   return (
     <aside className="community-sidebar">
       <section className="sidebar-card">
@@ -22,6 +56,7 @@ export default function CommunitySidebar({ communities, activeCommunityId, onSel
           {communities.map((community, index) => {
             const Icon = icons[index % icons.length] ?? Users;
             const isActive = community.id === activeCommunityId;
+            const isJoined = joinedIds.includes(community.id);
             return (
               <div 
                 className={`community-list-item ${isActive ? "active" : ""}`} 
@@ -38,6 +73,19 @@ export default function CommunitySidebar({ communities, activeCommunityId, onSel
                     <strong>{community.members}</strong>
                     <p>{community.description}</p>
                   </div>
+                </div>
+                <div className="community-sidebar-actions" onClick={(event) => event.stopPropagation()}>
+                  {joiningId === community.id ? (
+                    <>
+                      <input type="password" placeholder="Passcode" value={passcode} onChange={(event) => setPasscode(event.target.value)} autoFocus />
+                      <button type="button" onClick={(event) => confirmJoin(event, community.id)}>Confirm</button>
+                      {error && <span>{error}</span>}
+                    </>
+                  ) : (
+                    <button type="button" onClick={(event) => beginJoin(event, community.id)} disabled={isJoined}>
+                      {isJoined ? "Joined" : "Join"}
+                    </button>
+                  )}
                 </div>
               </div>
             )

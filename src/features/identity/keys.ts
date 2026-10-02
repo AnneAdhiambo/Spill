@@ -11,6 +11,8 @@ import * as bip39 from "bip39";
 import { HDKey } from "@scure/bip32";
 
 const STORAGE_KEY = "spill.identity.v1";
+const SESSION_KEY = "spill.identity.session.v1";
+const SESSION_EVENT = "spill:identity-session-change";
 const PBKDF2_ITERATIONS = 210_000; // OWASP 2023 minimum recommendation for PBKDF2-SHA256
 
 export interface NewIdentity {
@@ -76,7 +78,11 @@ export async function saveIdentity(identity: NewIdentity, passcode: string): Pro
   const key = await deriveAesKey(passcode, salt);
 
   const plaintext = new TextEncoder().encode(identity.privateKeyHex);
-  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+  const cipherBuf = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: toWebCryptoBytes(iv) },
+    key,
+    toWebCryptoBytes(plaintext)
+  );
 
   const record: StoredIdentity = {
     npub: identity.npub,
@@ -110,9 +116,9 @@ export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex:
 
   try {
     const plainBuf = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
+      { name: "AES-GCM", iv: toWebCryptoBytes(iv) },
       key,
-      fromBase64(record.cipher)
+      toWebCryptoBytes(fromBase64(record.cipher))
     );
     const privateKeyHex = new TextDecoder().decode(plainBuf);
     return { privateKeyHex, npub: record.npub };
@@ -124,7 +130,26 @@ export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex:
 
 export function clearStoredIdentity(): void {
   localStorage.removeItem(STORAGE_KEY);
+  endIdentitySession();
 }
+
+/** Mark the encrypted local identity as unlocked for this browser session. */
+export function beginIdentitySession(): void {
+  sessionStorage.setItem(SESSION_KEY, "active");
+  window.dispatchEvent(new Event(SESSION_EVENT));
+}
+
+/** Lock the local identity without deleting its encrypted backup. */
+export function endIdentitySession(): void {
+  sessionStorage.removeItem(SESSION_KEY);
+  window.dispatchEvent(new Event(SESSION_EVENT));
+}
+
+export function hasActiveIdentitySession(): boolean {
+  return sessionStorage.getItem(SESSION_KEY) === "active";
+}
+
+export const identitySessionEvent = SESSION_EVENT;
 
 // ---- ephemeral (pseudonym) keys ---------------------------------------
 
@@ -141,13 +166,13 @@ export function createEphemeralIdentity(): { privateKeyHex: string; npub: string
 async function deriveAesKey(passcode: string, salt: Uint8Array): Promise<CryptoKey> {
   const baseKey = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(passcode),
+    toWebCryptoBytes(new TextEncoder().encode(passcode)),
     "PBKDF2",
     false,
     ["deriveKey"]
   );
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as BufferSource, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+    { name: "PBKDF2", salt: toWebCryptoBytes(salt), iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
@@ -163,6 +188,11 @@ function hexToBytes(hex: string): Uint8Array {
   const out = new Uint8Array(hex.length / 2);
   for (let i = 0; i < out.length; i++) out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   return out;
+}
+
+/** Web Crypto requires an ArrayBuffer-backed view, so copy generic byte arrays. */
+function toWebCryptoBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(bytes);
 }
 
 function toBase64(bytes: Uint8Array): string {

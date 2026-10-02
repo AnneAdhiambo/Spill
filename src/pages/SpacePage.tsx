@@ -88,8 +88,8 @@ export default function SpacePage() {
               ) : (
                 <LiveRoomCard
                   isJoining={isJoiningAudio}
-                  isListening={liveKitSession?.role === "listener"}
-                  onListen={() => joinAudio("activism-civic-rights", "listener")}
+                  isHosting={liveKitSession?.role === "host"}
+                  onHost={() => joinAudio("activism-civic-rights", "host")}
                 />
               )}
             </>

@@ -148,6 +148,7 @@
 .live-timer > span { width:10px; height:10px; border-radius:999px; background:#ff1d2f; }
 .live-timer time { color:#99a2b3; font-weight:500; margin-left:8px; }
 .room-actions { display:grid; grid-template-columns:1.4fr 1.1fr .72fr; gap:9px; margin-top:auto; padding-top:7px; }
+.room-actions.host-actions { grid-template-columns:1.4fr .72fr; }
 .room-actions button { min-height:40px; border-radius:12px; font-weight:900; font-size:13px; display:flex; align-items:center; justify-content:center; gap:7px; }
 .listen-button { border:0; color:#fff; background:var(--brand-gradient); }
 .listen-button.listening { background:linear-gradient(90deg,#d81f3c,#ff8a1d); }

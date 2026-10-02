@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "../../hooks/useTheme"
+import { useIdentitySession } from "../../hooks/useIdentitySession"
 
 const links = [
   { label: "Home", href: "/" },
@@ -15,6 +16,7 @@ type SpillNavbarProps = {
 
 export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
   const { theme, toggleTheme } = useTheme()
+  const { isSignedIn, signOut } = useIdentitySession()
   const isDark = theme === "dark"
 
   return (
@@ -41,8 +43,14 @@ export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
         >
           {isDark ? <Sun size={19} /> : <Moon size={19} />}
         </button>
-        <button className="nav-outline-button" type="button">Sign in</button>
-        <button className="nav-gradient-button" type="button">Get Started</button>
+        {isSignedIn ? (
+          <button className="nav-outline-button" type="button" onClick={signOut}>Sign out</button>
+        ) : (
+          <>
+            <button className="nav-outline-button" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Sign in</button>
+            <button className="nav-gradient-button" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Get Started</button>
+          </>
+        )}
       </div>
     </header>
   )

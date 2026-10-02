@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "../../hooks/useTheme"
+import { useIdentitySession } from "../../hooks/useIdentitySession"
 
 const links = [
   { label: "Home", href: "/" },
@@ -11,6 +12,7 @@ const links = [
 
 export default function TopNavbar() {
   const { theme, toggleTheme } = useTheme()
+  const { isSignedIn, signOut } = useIdentitySession()
   const isDark = theme === "dark"
 
   return (
@@ -41,8 +43,14 @@ export default function TopNavbar() {
         >
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <button className="nav-button secondary" type="button">Sign in</button>
-        <button className="nav-button primary" type="button">Get Started</button>
+        {isSignedIn ? (
+          <button className="nav-button secondary" type="button" onClick={signOut}>Sign out</button>
+        ) : (
+          <>
+            <button className="nav-button secondary" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Sign in</button>
+            <button className="nav-button primary" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Get Started</button>
+          </>
+        )}
       </div>
     </header>
   )

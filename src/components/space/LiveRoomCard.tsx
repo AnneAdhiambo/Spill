@@ -1,17 +1,18 @@
 import { Headphones, LockKeyhole, Mic2, MoreHorizontal, Play, Tag, UsersRound, Zap } from "lucide-react";
 import { useState } from "react";
+
+import ZapModal from "../zaps/ZapModal";
 import RoomParticipants from "./RoomParticipants";
 import Waveform from "./Waveform";
 
 type LiveRoomCardProps = {
   isJoining: boolean;
-  isListening: boolean;
-  onListen: () => void;
+  isHosting: boolean;
+  onHost: () => void;
 };
 
-export default function LiveRoomCard({ isJoining, isListening, onListen }: LiveRoomCardProps) {
-  const [requested, setRequested] = useState(false);
-  const [zapped, setZapped] = useState(false);
+export default function LiveRoomCard({ isJoining, isHosting, onHost }: LiveRoomCardProps) {
+  const [isZapModalOpen, setIsZapModalOpen] = useState(false);
 
   return (
     <article className="live-room-card">
@@ -45,22 +46,26 @@ export default function LiveRoomCard({ isJoining, isListening, onListen }: LiveR
             <div className="live-timer"><span /> LIVE <time>00:24:17</time></div>
           </div>
 
-          <div className="room-actions">
-            <button className={`listen-button ${isListening ? "listening" : ""}`} type="button" onClick={onListen} disabled={isJoining || isListening}>
-              {isListening ? <Headphones size={22} /> : <Play size={22} fill="currentColor" />}
-              {isJoining ? "Joining…" : isListening ? "Listening" : "Listen Live"}
+          <div className="room-actions host-actions">
+            <button className={`listen-button ${isHosting ? "listening" : ""}`} type="button" onClick={onHost} disabled={isJoining || isHosting}>
+              <Mic2 size={22} />
+              {isJoining ? "Joining…" : isHosting ? "Hosting live" : "Start hosting"}
             </button>
-            <button className={`speak-button ${requested ? "requested" : ""}`} type="button" onClick={() => setRequested((value) => !value)}>
-              <Mic2 size={21} /> {requested ? "Request Sent" : "Request to Speak"}
-            </button>
-            <button className={`zap-button ${zapped ? "zapped" : ""}`} type="button" onClick={() => setZapped(true)}>
-              <Zap size={20} fill="currentColor" /> {zapped ? "Zapped 21 sats" : "Zap Host"}
+            <button className="zap-button" type="button" onClick={() => setIsZapModalOpen(true)}>
+              <Zap size={20} fill="currentColor" /> Zap Host
             </button>
           </div>
         </div>
       </div>
 
       <RoomParticipants embedded />
+      {isZapModalOpen && (
+        <ZapModal
+          initialSats={21}
+          targetLabel="Anonymous Space Host"
+          onClose={() => setIsZapModalOpen(false)}
+        />
+      )}
     </article>
   );
 }
