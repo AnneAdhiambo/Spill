@@ -4,7 +4,7 @@ import {
   Wallet,
   type Proof,
 } from "@cashu/cashu-ts";
-import { finalizeEvent, SimplePool, type Event } from "nostr-tools";
+import { finalizeEvent, nip19, SimplePool, type Event } from "nostr-tools";
 import { getPublicKey } from "nostr-tools/pure";
 import { unlockIdentity } from "../../features/identity/keys";
 
@@ -19,6 +19,18 @@ const RESERVED_PROOFS_KEY = "spill.nutzap.reserved-proofs";
 
 function hexToBytes(hex: string) {
   return new Uint8Array(hex.match(/.{1,2}/g)?.map((value) => Number.parseInt(value, 16)) ?? []);
+}
+
+function toHexPubkey(pubkey: string): string {
+  if (pubkey.startsWith("npub1")) {
+    try {
+      const decoded = nip19.decode(pubkey);
+      if (decoded.type === "npub") return decoded.data as string;
+    } catch {
+      // ignore
+    }
+  }
+  return pubkey;
 }
 
 export type RecipientNutzapInfo = {
@@ -51,9 +63,10 @@ export async function publishNutzapConfiguration(passcode: string): Promise<void
 }
 
 export async function fetchRecipientNutzapInfo(recipientNostrPubkey: string): Promise<RecipientNutzapInfo> {
+  const targetHex = toHexPubkey(recipientNostrPubkey);
   const events = await pool.querySync(RELAYS, {
     kinds: [10019],
-    authors: [recipientNostrPubkey],
+    authors: [targetHex],
     limit: 1,
   });
 
@@ -211,7 +224,7 @@ export async function sendNutzap(
         ["amount", String(amount)],
         ["unit", nutzapInfo.unit || "sat"],
         ["mint", nutzapInfo.mint],
-        ["p", recipientNostrPubkey],
+        ["p", toHexPubkey(recipientNostrPubkey)],
         ...(eventId ? [["e", eventId]] : []),
         ...p2pkProofs.map((p) => ["proof", JSON.stringify(p)]),
       ],
