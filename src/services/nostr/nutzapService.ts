@@ -5,6 +5,7 @@ import {
   type Proof,
 } from "@cashu/cashu-ts";
 import { finalizeEvent, SimplePool, type Event } from "nostr-tools";
+import { getPublicKey } from "nostr-tools/pure";
 import { unlockIdentity } from "../../features/identity/keys";
 
 const RELAYS = ["wss://relay.damus.io", "wss://relay.nostr.band"];
@@ -316,4 +317,70 @@ export async function receiveNutzap(passcode: string, nutzapEvent: Event) {
   await save(passcode, state);
 
   return walletSnapshot(passcode);
+}
+
+/** Polls/subscribes for incoming kind:9321 zaps for my pubkey, redeems P2PK proofs, and notifies. */
+export async function pollIncomingNutzaps(
+  passcode: string,
+  onReceivedNotice?: (noticeMessage: string) => void
+): Promise<number> {
+  const identity = await unlockIdentity(passcode);
+  const hexPubkey = getPublicKey(hexToBytes(identity.privateKeyHex));
+
+  let events: Event[] = [];
+  try {
+    events = await pool.querySync(RELAYS, {
+      kinds: [9321],
+      "#p": [hexPubkey],
+      limit: 50,
+    });
+  } catch (err) {
+    console.warn("Relay query for incoming zaps failed", err);
+    return 0;
+  }
+
+  let totalReceivedSats = 0;
+  for (const event of events) {
+    const receivedIds = getReceivedEventIds();
+    if (receivedIds.includes(event.id)) continue;
+
+    try {
+      await receiveNutzap(passcode, event);
+      const amountTag = event.tags.find((t) => t[0] === "amount");
+      const amount = amountTag ? Number(amountTag[1]) : 0;
+      totalReceivedSats += amount;
+    } catch (err) {
+      console.warn("Failed to redeem incoming zap event", event.id, err);
+    }
+  }
+
+  if (totalReceivedSats > 0 && onReceivedNotice) {
+    onReceivedNotice(`You received ${totalReceivedSats} sats!`);
+  }
+
+  return totalReceivedSats;
+}
+
+/** Self-check tool to verify if stored identity has a kind:10019 configuration event on Nostr relays. */
+export async function checkMy10019(recipientNostrPubkey?: string): Promise<{ success: boolean; info?: RecipientNutzapInfo; error?: string }> {
+  try {
+    let targetPubkey = recipientNostrPubkey;
+    if (!targetPubkey) {
+      const storedNpub = localStorage.getItem("spill.identity.v1");
+      if (!storedNpub) return { success: false, error: "No identity found on this device." };
+      const parsed = JSON.parse(storedNpub) as { npub: string };
+      targetPubkey = parsed.npub;
+    }
+    const info = await fetchRecipientNutzapInfo(targetPubkey);
+    console.log("✅ 10019 Nutzap configuration event found on relays:", info);
+    return { success: true, info };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : "Not found on relays.";
+    console.warn("❌ 10019 Nutzap configuration event check failed:", error);
+    return { success: false, error };
+  }
+}
+
+if (typeof window !== "undefined") {
+  (window as any).checkMy10019 = checkMy10019;
 }

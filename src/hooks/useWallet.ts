@@ -92,6 +92,17 @@ export function useWallet() {
       setIsUnlocked(true);
       setWalletExists(true);
       syncStateFromSnapshot(snapshot);
+
+      // Background triggers on unlock: publish 10019 if missing, poll incoming zaps
+      import("../services/nostr/nutzapService").then(({ publishNutzapConfiguration, pollIncomingNutzaps }) => {
+        publishNutzapConfiguration(inputPasscode).catch(() => undefined);
+        pollIncomingNutzaps(inputPasscode, (notice) => {
+          console.log("🔔 Zap Notification:", notice);
+        }).then(() => {
+          walletSnapshot(inputPasscode).then(syncStateFromSnapshot).catch(() => undefined);
+        }).catch(() => undefined);
+      }).catch(() => undefined);
+
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Incorrect passcode. Please try again.";

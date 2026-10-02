@@ -61,12 +61,12 @@ export default function ZapModal({
 
     const activePasscode = passcodeInput || sessionStorage.getItem("spill.wallet.session.passcode");
     if (!activePasscode) {
-      setError("Please enter your device passcode to authorize this Nutzap.");
+      setError("Please enter your device passcode to authorize this transaction.");
       return;
     }
 
     setView("sending");
-    setSendingStatus("Reserving proofs & creating P2PK swap...");
+    setSendingStatus("Reserving proofs & processing payment...");
 
     try {
       await sendNutzap(
@@ -80,7 +80,7 @@ export default function ZapModal({
       setView("complete");
       wallet.refreshState(activePasscode);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to send Nutzap.";
+      const msg = err instanceof Error ? err.message : "Failed to send sats.";
       setError(msg);
       setView("confirm");
     }
@@ -180,8 +180,8 @@ export default function ZapModal({
                 />
                 <ShieldCheck size={20} aria-hidden="true" />
                 <span>
-                  <strong>Zap anonymously</strong>
-                  <small>Peer-to-peer Nutzap with 0% platform fee.</small>
+                  <strong>Send anonymously</strong>
+                  <small>100% goes to them. Spill takes no fee.</small>
                 </span>
               </label>
               <label className={supportMode === "private" ? "is-selected" : ""}>
@@ -206,7 +206,7 @@ export default function ZapModal({
                 onClick={() => setView("confirm")}
                 disabled={sats === 0}
               >
-                Continue
+                Send {sats} sats
               </button>
             ) : (
               <button
@@ -228,7 +228,7 @@ export default function ZapModal({
               <ArrowLeft size={16} /> Back
             </button>
             <span className="zap-modal-kicker">
-              <Zap size={15} /> CONFIRM NUTZAP
+              <Zap size={15} /> CONFIRM PAYMENT
             </span>
             <h2 id="zap-modal-title">Send {sats} sats?</h2>
 
@@ -238,12 +238,8 @@ export default function ZapModal({
                 <dd>{targetLabel}</dd>
               </div>
               <div>
-                <dt>Protocol</dt>
-                <dd>NIP-61 Cashu Nutzap (P2PK)</dd>
-              </div>
-              <div>
-                <dt>Platform fee</dt>
-                <dd style={{ color: "#16a34a" }}>0% (Direct P2P)</dd>
+                <dt>Fee</dt>
+                <dd style={{ color: "#16a34a" }}>100% goes to them. Spill takes no fee.</dd>
               </div>
             </dl>
 
@@ -290,14 +286,14 @@ export default function ZapModal({
         {view === "sending" && (
           <div className="zap-invoice-preview zap-complete-preview">
             <span className="zap-modal-kicker">
-              <RefreshCw size={15} className="animate-spin" /> PROCESSING NUTZAP
+              <RefreshCw size={15} className="animate-spin" /> SENDING SATS
             </span>
-            <h2 id="wallet-modal-title">Sending {sats} sats</h2>
+            <h2 id="zap-modal-title">Sending {sats} sats…</h2>
             <p>{sendingStatus}</p>
             <div style={{ margin: "24px auto" }}>
               <RefreshCw size={48} className="animate-spin" style={{ color: "#ff7a1a" }} />
             </div>
-            <p className="zap-invoice-copy">Creating P2PK-locked output and publishing signed NIP-61 event to Nostr.</p>
+            <p className="zap-invoice-copy">100% goes to recipient. Spill takes no fee.</p>
           </div>
         )}
 
@@ -305,10 +301,10 @@ export default function ZapModal({
         {view === "complete" && (
           <div className="zap-invoice-preview zap-complete-preview">
             <span className="zap-modal-kicker">
-              <CheckCircle2 size={15} /> NUTZAP SENT
+              <CheckCircle2 size={15} /> PAYMENT SENT
             </span>
-            <h2 id="zap-modal-title">Zapped {sentAmount} sats!</h2>
-            <p>Peer-to-peer Nutzap delivered to {targetLabel} with 0% platform fee.</p>
+            <h2 id="zap-modal-title">Sent {sentAmount} sats to {targetLabel}!</h2>
+            <p>100% goes to them. Spill takes no fee.</p>
             <CheckCircle2 className="zap-complete-icon" size={74} strokeWidth={1.4} aria-hidden="true" />
             <button className="zap-copy-invoice" type="button" onClick={onClose}>
               Done
@@ -323,9 +319,9 @@ export default function ZapModal({
               <ArrowLeft size={16} /> Back to support
             </button>
             <span className="zap-modal-kicker">
-              <QrCode size={15} /> ADD FUNDS FOR NUTZAP
+              <QrCode size={15} /> ADD FUNDS
             </span>
-            <h2 id="wallet-modal-title">Fund your wallet</h2>
+            <h2 id="zap-modal-title">Fund your wallet</h2>
             <p className="zap-invoice-copy">Scan this invoice with any Lightning wallet to top up your balance.</p>
 
             <button
