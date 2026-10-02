@@ -21,6 +21,38 @@ export async function walletSnapshot(passcode: string) { const state = await rea
 export async function createFundingQuote(passcode: string, amount: number) { if (!Number.isSafeInteger(amount) || amount < 1) throw new Error("Enter a whole number of sats."); const value = await wallet(), quote = await value.createMintQuoteBolt11(amount), state = await read(passcode); state.pending = [...state.pending.filter((item) => item.quote !== quote.quote), { quote: quote.quote, amount, request: quote.request, expiresAt: quote.expiry ?? undefined }]; await save(passcode, state); return { quoteId: quote.quote, invoice: quote.request, expiresAt: quote.expiry ?? undefined }; }
 export async function claimFundingQuote(passcode: string, quoteId: string) { const state = await read(passcode), pending = state.pending.find((item) => item.quote === quoteId); if (!pending) throw new Error("Funding request was not found on this device."); const value = await wallet(), checked = await value.checkMintQuoteBolt11(quoteId); if (checked.state !== MintQuoteState.PAID) throw new Error(checked.state === MintQuoteState.UNPAID ? "Invoice is waiting for payment." : "Invoice expired or could not be paid. Create a new one."); const proofs = await value.mintProofsBolt11(pending.amount, quoteId); state.proofs.push(...proofs); state.pending = state.pending.filter((item) => item.quote !== quoteId); state.history.unshift({ id: quoteId, type: "funds", amount: pending.amount, at: Date.now() }); await save(passcode, state); return walletSnapshot(passcode); }
 export async function receiveToken(passcode: string, token: string) { const meta = getTokenMetadata(token), value = await wallet(); validateReceiveMetadata(meta, value.mint.mintUrl); const state = await read(passcode), proofs = await value.receive(token, { requireDleq: true }), amount = proofs.reduce((sum, proof) => sum + Number(proof.amount), 0); state.proofs.push(...proofs); state.history.unshift({ id: crypto.randomUUID(), type: "received", amount, at: Date.now() }); await save(passcode, state); return walletSnapshot(passcode); }
+export function hasWallet(): boolean { return Boolean(localStorage.getItem(storageKey)); }
+export async function initializeWallet(passcode: string) { const state = await read(passcode); await save(passcode, state); return walletSnapshot(passcode); }
+export async function resumePendingQuotes(passcode: string) {
+  const state = await read(passcode);
+  if (!state.pending || state.pending.length === 0) return walletSnapshot(passcode);
+  let changed = false;
+  let value: Wallet | null = null;
+  const remainingPending: PendingQuote[] = [];
+  for (const item of state.pending) {
+    try {
+      if (!value) value = await wallet();
+      const checked = await value.checkMintQuoteBolt11(item.quote);
+      if (checked.state === MintQuoteState.PAID) {
+        const proofs = await value.mintProofsBolt11(item.amount, item.quote);
+        state.proofs.push(...proofs);
+        state.history.unshift({ id: item.quote, type: "funds", amount: item.amount, at: Date.now() });
+        changed = true;
+      } else if (item.expiresAt && Date.now() > item.expiresAt * 1000) {
+        changed = true;
+      } else {
+        remainingPending.push(item);
+      }
+    } catch {
+      remainingPending.push(item);
+    }
+  }
+  if (changed) {
+    state.pending = remainingPending;
+    await save(passcode, state);
+  }
+  return walletSnapshot(passcode);
+}
 export async function exportWalletBackup(passcode: string) { return JSON.stringify(await read(passcode)); }
 export async function restoreWalletBackup(passcode: string, backup: string) {
   let restored: WalletState; try { restored = JSON.parse(backup) as WalletState; } catch { throw new Error("That wallet backup is not valid."); }
