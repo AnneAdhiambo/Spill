@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { nip19 } from "nostr-tools";
-import { getPublicKey } from "nostr-tools/pure";
+import { generateSecretKey, getPublicKey } from "nostr-tools/pure";
 import { importIdentity, type NewIdentity } from "../../features/identity/keys";
 
 interface ImportKeyStepProps {
@@ -23,11 +23,14 @@ export default function ImportKeyStep({ onImported, onBack }: ImportKeyStepProps
         const privateKeyHex = Array.from(sk)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
+        const nutzapSecretKey = generateSecretKey();
         onImported({
           mnemonic: "",
           privateKeyHex,
           npub: nip19.npubEncode(getPublicKey(sk)),
           nsec: trimmed,
+          nutzapPrivateKeyHex: Array.from(nutzapSecretKey).map((b) => b.toString(16).padStart(2, "0")).join(""),
+          nutzapPubkey: getPublicKey(nutzapSecretKey),
         });
         return;
       }

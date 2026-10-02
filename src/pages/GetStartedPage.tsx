@@ -15,6 +15,7 @@ import {
   unlockIdentity,
   type NewIdentity,
 } from "../features/identity/keys";
+import { publishNutzapConfiguration } from "../services/nostr/nutzapService";
 
 type Step =
   | "welcome"
@@ -53,6 +54,8 @@ export default function GetStartedPage() {
     setSubmitting(true);
     try {
       await saveIdentity(identity, passcode);
+      // Configuration failure does not discard a newly created local identity.
+      await publishNutzapConfiguration(passcode).catch(() => undefined);
       beginIdentitySession();
       setFinalNpub(identity.npub);
       setStep("done");

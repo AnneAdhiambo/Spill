@@ -20,11 +20,14 @@ export interface NewIdentity {
   privateKeyHex: string; // raw private key, for immediate in-memory use only
   npub: string;
   nsec: string;
+  /** Separate Cashu P2PK key; never use the Nostr event-signing key for nutzaps. */
+  nutzapPrivateKeyHex: string;
+  nutzapPubkey: string;
 }
 
 export interface StoredIdentity {
   npub: string;
-  cipher: string; // base64 ciphertext of the private key
+  cipher: string; // base64 ciphertext of the identity and nutzap private keys
   salt: string;   // base64
   iv: string;     // base64
 }
@@ -61,11 +64,14 @@ function deriveFromMnemonic(mnemonic: string) {
 function keypairFromPrivateKeyHex(privateKeyHex: string, mnemonic: string): NewIdentity {
   const sk = hexToBytes(privateKeyHex);
   const pk = getPublicKey(sk);
+  const nutzapSecretKey = generateSecretKey();
   return {
     mnemonic,
     privateKeyHex,
     npub: nip19.npubEncode(pk),
     nsec: nip19.nsecEncode(sk),
+    nutzapPrivateKeyHex: bytesToHex(nutzapSecretKey),
+    nutzapPubkey: getPublicKey(nutzapSecretKey),
   };
 }
 
@@ -77,7 +83,10 @@ export async function saveIdentity(identity: NewIdentity, passcode: string): Pro
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveAesKey(passcode, salt);
 
-  const plaintext = new TextEncoder().encode(identity.privateKeyHex);
+  const plaintext = new TextEncoder().encode(JSON.stringify({
+    privateKeyHex: identity.privateKeyHex,
+    nutzapPrivateKeyHex: identity.nutzapPrivateKeyHex,
+  }));
   const cipherBuf = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: toWebCryptoBytes(iv) },
     key,
@@ -105,7 +114,7 @@ export function getStoredNpub(): string | null {
 }
 
 /** Unlock the stored identity with a passcode. Throws on wrong passcode. */
-export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex: string; npub: string }> {
+export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex: string; npub: string; nutzapPrivateKeyHex: string; nutzapPubkey: string }> {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) throw new Error("No saved identity on this device.");
   const record = JSON.parse(raw) as StoredIdentity;
@@ -120,10 +129,20 @@ export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex:
       key,
       toWebCryptoBytes(fromBase64(record.cipher))
     );
-    const privateKeyHex = new TextDecoder().decode(plainBuf);
-    return { privateKeyHex, npub: record.npub };
-  } catch {
-    // AES-GCM authentication failure = wrong passcode (or corrupted data)
+    const decrypted = new TextDecoder().decode(plainBuf);
+    const secrets = JSON.parse(decrypted) as { privateKeyHex: string; nutzapPrivateKeyHex?: string };
+    if (!secrets.nutzapPrivateKeyHex) {
+      throw new Error("This identity predates separate Nutzap keys. Re-import it to create a separate Nutzap receiving key.");
+    }
+    return {
+      privateKeyHex: secrets.privateKeyHex,
+      npub: record.npub,
+      nutzapPrivateKeyHex: secrets.nutzapPrivateKeyHex,
+      nutzapPubkey: getPublicKey(hexToBytes(secrets.nutzapPrivateKeyHex)),
+    };
+  } catch (error) {
+    // AES-GCM authentication failure = wrong passcode (or corrupted data).
+    if (error instanceof Error && error.message.startsWith("This identity predates")) throw error;
     throw new Error("Incorrect passcode.");
   }
 }
