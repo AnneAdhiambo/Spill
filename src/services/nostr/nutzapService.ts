@@ -253,6 +253,16 @@ export async function sendNutzap(
     // Recipient-locked outputs are kept pending in the stored event.
   }
 
+  if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+    try {
+      const bc = new BroadcastChannel("spill-nutzap-channel");
+      bc.postMessage({ type: "nutzap-event", event: nutzapEvent });
+      bc.close();
+    } catch {
+      // ignore
+    }
+  }
+
   return { nutzapEvent, snapshot: await walletSnapshot(passcode) };
 }
 

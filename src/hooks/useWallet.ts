@@ -52,6 +52,12 @@ export function useWallet() {
     try {
       const snapshot = await resumePendingQuotes(currentPasscode);
       syncStateFromSnapshot(snapshot);
+      const { pollIncomingNutzaps } = await import("../services/nostr/nutzapService");
+      await pollIncomingNutzaps(currentPasscode, (notice) => {
+        console.log("🔔 Zap Notification:", notice);
+      });
+      const updatedSnapshot = await walletSnapshot(currentPasscode);
+      syncStateFromSnapshot(updatedSnapshot);
     } catch {
       // Ignore background sync errors silently
     }
@@ -80,6 +86,42 @@ export function useWallet() {
         });
     }
   }, [syncStateFromSnapshot]);
+
+  // Automatic background sync for incoming zaps & quotes while wallet is unlocked
+  useEffect(() => {
+    if (!isUnlocked || !passcode) return;
+
+    const sync = () => {
+      refreshState(passcode);
+    };
+
+    // 1. Initial sync on unlock
+    sync();
+
+    // 2. Poll every 5 seconds
+    const intervalId = setInterval(sync, 5000);
+
+    // 3. Sync on tab focus
+    const onFocus = () => sync();
+    window.addEventListener("focus", onFocus);
+
+    // 4. Instant inter-tab sync via BroadcastChannel
+    let bc: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== "undefined") {
+      try {
+        bc = new BroadcastChannel("spill-nutzap-channel");
+        bc.onmessage = () => sync();
+      } catch {
+        // ignore
+      }
+    }
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", onFocus);
+      if (bc) bc.close();
+    };
+  }, [isUnlocked, passcode, refreshState]);
 
   const unlock = useCallback(async (inputPasscode: string) => {
     setError(null);
