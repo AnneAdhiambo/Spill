@@ -92,7 +92,13 @@ export default function ReportCard({ report }: ReportCardProps) {
       </div>
 
       {isZapModalOpen && (
-        <ZapModal initialSats={staticReport?.zaps ?? 21} targetLabel="Anonymous Reporter" onClose={() => setIsZapModalOpen(false)} />
+        <ZapModal
+          initialSats={staticReport?.zaps ?? 21}
+          targetLabel={isPost ? (report.authorName || "Community Member") : "Anonymous Reporter"}
+          recipientNostrPubkey={isPost ? report.pubkey : undefined}
+          targetEventId={isPost ? report.id : undefined}
+          onClose={() => setIsZapModalOpen(false)}
+        />
       )}
     </article>
   );
