@@ -223,6 +223,7 @@
 .zap-usd-estimate { margin: 9px 0 0; color: #8a7d72; font-size: 14px; font-weight: 650; }
 .zap-balance-line { margin: 22px 0 0; color: #756a61; font-size: 13px; }
 .zap-balance-line strong { color: #2f2822; }
+.zap-balance-button { border: 0; background: transparent; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .zap-source-options { display: grid; gap: 9px; margin: 22px 0 0; padding: 0; border: 0; text-align: left; }
 .zap-source-options legend { margin-bottom: 1px; color: #403831; font-size: 14px; font-weight: 850; }
 .zap-source-options button { display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 10px; width: 100%; padding: 13px; border: 1px solid #e2d9d0; border-radius: 14px; color: #5f544c; background: #fff; text-align: left; }
@@ -273,6 +274,25 @@
 .zap-complete-preview { text-align: center; }
 .zap-complete-preview h2 { margin-right: 0; }
 .zap-complete-icon { display: block; margin: 24px auto; color: #1a9b58; }
+.zap-credits-wallet { text-align: left; }
+.credits-balance-card { display: flex; align-items: baseline; gap: 9px; margin: 22px 0; padding: 18px; border: 1px solid #f0d8ca; border-radius: 16px; background: linear-gradient(135deg, #fff3eb, #fffaf6); }
+.credits-balance-card strong { color: #271d18; font-size: 38px; line-height: 1; letter-spacing: -.05em; }
+.credits-balance-card span { color: #735f54; font-size: 15px; font-weight: 800; }
+.credits-wallet-actions { display: grid; gap: 10px; }
+.credits-wallet-actions button { display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 1px solid #e3d9d0; border-radius: 14px; color: #5f544c; background: #fff; text-align: left; }
+.credits-wallet-actions button svg { color: #ff5727; }
+.credits-wallet-actions strong, .credits-wallet-actions small { display: block; }
+.credits-wallet-actions strong { color: #2d2722; font-size: 14px; }
+.credits-wallet-actions small { margin-top: 3px; color: #766c64; font-size: 12px; line-height: 1.35; }
+.cashu-token-input { width: 100%; min-height: 132px; margin: 20px 0 14px; padding: 12px; border: 1px solid #dfd4ca; border-radius: 13px; color: #2c241e; background: #fff; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
+.cashu-invoice-copy { min-height: 88px; }
+.credits-amount-input { display: flex; align-items: center; gap: 10px; margin: 20px 0; padding: 0 12px; border: 1px solid #dfd4ca; border-radius: 13px; }
+.credits-amount-input span { color: #6f655d; font-size: 14px; font-weight: 750; }
+.credits-amount-input input { min-width: 0; flex: 1; border: 0; outline: 0; padding: 13px 0; color: #2c241e; background: transparent; font: inherit; text-align: right; font-weight: 800; }
+.credits-amount-input b { color: #6f655d; font-size: 13px; }
+.zap-success-message, .zap-error-message { margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.4; }
+.zap-success-message { color: #087644; background: #e8f7ed; }
+.zap-error-message { color: #b3261e; background: #fff0ee; }
 
 .sensitive-media {
   position: relative; overflow: hidden; border-radius: 18px; min-height: 188px;
@@ -554,6 +574,7 @@
 :root[data-theme="dark"] .zap-wallet-amount span,
 :root[data-theme="dark"] .zap-usd-estimate,
 :root[data-theme="dark"] .zap-balance-line { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-balance-button { color: #c8bcb2; }
 :root[data-theme="dark"] .zap-balance-line strong,
 :root[data-theme="dark"] .zap-source-options strong,
 :root[data-theme="dark"] .zap-review-details dd { color: #faf7f2; }
@@ -564,6 +585,19 @@
 :root[data-theme="dark"] .zap-review-details { border-color: rgba(255,255,255,.14); }
 :root[data-theme="dark"] .zap-review-details div { color: #c8bcb2; }
 :root[data-theme="dark"] .zap-qr-placeholder { border-color: rgba(255,255,255,.15); color: #211b16; background: repeating-linear-gradient(45deg, #eee7de 0 4px, #fff 4px 8px); }
+:root[data-theme="dark"] .credits-balance-card { border-color: #58301d; background: linear-gradient(135deg, #2b1811, #1d1511); }
+:root[data-theme="dark"] .credits-balance-card strong { color: #fff5ee; }
+:root[data-theme="dark"] .credits-balance-card span { color: #d3beb0; }
+:root[data-theme="dark"] .credits-wallet-actions button { border-color: rgba(255,255,255,.15); color: #eee6de; background: #211a16; }
+:root[data-theme="dark"] .credits-wallet-actions strong { color: #f8f2ec; }
+:root[data-theme="dark"] .credits-wallet-actions small { color: #c8bcb2; }
+:root[data-theme="dark"] .cashu-token-input,
+:root[data-theme="dark"] .credits-amount-input { border-color: rgba(255,255,255,.15); color: #f8f2ec; background: #211a16; }
+:root[data-theme="dark"] .credits-amount-input input { color: #fff; }
+:root[data-theme="dark"] .credits-amount-input span,
+:root[data-theme="dark"] .credits-amount-input b { color: #c8bcb2; }
+:root[data-theme="dark"] .zap-success-message { color: #9ce5bb; background: #123622; }
+:root[data-theme="dark"] .zap-error-message { color: #ffc2bc; background: #481914; }
 
 @media (max-width: 520px) {
   .zap-modal-backdrop { padding: 12px; }
