@@ -320,9 +320,11 @@ export async function receiveNutzap(passcode: string, nutzapEvent: Event) {
 
   const proofsToReceive: Proof[] = proofTags.map((t) => JSON.parse(t[1]) as Proof);
 
+  const unit = unitTag && unitTag[1] ? unitTag[1] : "sat";
+
   // Redeem P2PK locked proofs using identity.nutzapPrivateKeyHex
   const redeemedProofs = await cashuWallet.receive(
-    { mint: cashuWallet.mint.mintUrl, proofs: proofsToReceive },
+    { mint: cashuWallet.mint.mintUrl, proofs: proofsToReceive, unit },
     { privkey: identity.nutzapPrivateKeyHex }
   );
   const amount = redeemedProofs.reduce((sum, p) => sum + Number(p.amount), 0);
