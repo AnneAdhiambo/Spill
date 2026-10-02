@@ -129,20 +129,30 @@ export async function unlockIdentity(passcode: string): Promise<{ privateKeyHex:
       key,
       toWebCryptoBytes(fromBase64(record.cipher))
     );
-    const decrypted = new TextDecoder().decode(plainBuf);
-    const secrets = JSON.parse(decrypted) as { privateKeyHex: string; nutzapPrivateKeyHex?: string };
-    if (!secrets.nutzapPrivateKeyHex) {
-      throw new Error("This identity predates separate Nutzap keys. Re-import it to create a separate Nutzap receiving key.");
+    const decoded = new TextDecoder().decode(plainBuf);
+    let privateKeyHex = decoded;
+    let nutzapPrivateKeyHex = "";
+
+    try {
+      const parsed = JSON.parse(decoded) as { privateKeyHex: string; nutzapPrivateKeyHex?: string };
+      if (parsed.privateKeyHex) {
+        privateKeyHex = parsed.privateKeyHex;
+        nutzapPrivateKeyHex = parsed.nutzapPrivateKeyHex ?? "";
+      }
+    } catch {
+      // Legacy plaintext string payload
     }
-    return {
-      privateKeyHex: secrets.privateKeyHex,
-      npub: record.npub,
-      nutzapPrivateKeyHex: secrets.nutzapPrivateKeyHex,
-      nutzapPubkey: getPublicKey(hexToBytes(secrets.nutzapPrivateKeyHex)),
-    };
-  } catch (error) {
-    // AES-GCM authentication failure = wrong passcode (or corrupted data).
-    if (error instanceof Error && error.message.startsWith("This identity predates")) throw error;
+
+    if (!nutzapPrivateKeyHex) {
+      // Automatic fallback for legacy identities created before Nutzap key existed
+      const digest = await crypto.subtle.digest("SHA-256", toWebCryptoBytes(new TextEncoder().encode(privateKeyHex + ":nutzap:v1")));
+      nutzapPrivateKeyHex = bytesToHex(new Uint8Array(digest));
+    }
+
+    const nutzapPubkey = getPublicKey(hexToBytes(nutzapPrivateKeyHex));
+    return { privateKeyHex, npub: record.npub, nutzapPrivateKeyHex, nutzapPubkey };
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("No saved identity")) throw err;
     throw new Error("Incorrect passcode.");
   }
 }

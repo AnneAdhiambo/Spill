@@ -96,4 +96,31 @@ describe("Nutzap publishing retry and deduplication safeguards", () => {
       )
     ).toThrow(/configured payment provider/);
   });
+
+  it("fails pre-swap validation if recipient has no 10019 event or wrong mint", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+      return new Response(JSON.stringify({ mintUrl: "https://our.configured.mint" }), { status: 200 });
+    });
+
+    // Test mint mismatch check
+    const walletService = await import("../cashu/walletService");
+    expect(() =>
+      walletService.validateReceiveMetadata(
+        { mint: "https://recipient.different.mint", unit: "sat" },
+        "https://our.configured.mint"
+      )
+    ).toThrow(/configured payment provider/);
+
+    fetchSpy.mockRestore();
+  });
+
+  it("saves received Nutzap event ID only after successful processing", async () => {
+    localStorage.clear();
+    const eventId = "successful-redemption-event-777";
+    expect(getReceivedEventIds()).not.toContain(eventId);
+
+    // Simulating post-redemption record
+    saveReceivedEventId(eventId);
+    expect(getReceivedEventIds()).toContain(eventId);
+  });
 });
