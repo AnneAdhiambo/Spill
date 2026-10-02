@@ -38,7 +38,7 @@ export async function publishProfile(privateKeyHex: string): Promise<boolean> {
         kind: 0,
         created_at: Math.floor(Date.now() / 1000),
         tags: [],
-        content: JSON.stringify({ name: "Spill user", about: "Joined via Spill" }),
+        content: "{}",
       },
       hexToBytes(privateKeyHex)
     );
