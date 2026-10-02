@@ -1,6 +1,9 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, WalletCards } from "lucide-react"
+import { useState } from "react"
 import { useTheme } from "../../hooks/useTheme"
 import { useIdentitySession } from "../../hooks/useIdentitySession"
+import { useWallet } from "../../hooks/useWallet"
+import WalletModal from "../wallet/WalletModal"
 
 const links = [
   { label: "Home", href: "/" },
@@ -17,6 +20,8 @@ type SpillNavbarProps = {
 export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
   const { theme, toggleTheme } = useTheme()
   const { isSignedIn, signOut } = useIdentitySession()
+  const wallet = useWallet()
+  const [isWalletOpen, setIsWalletOpen] = useState(false)
   const isDark = theme === "dark"
 
   return (
@@ -43,6 +48,18 @@ export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
         >
           {isDark ? <Sun size={19} /> : <Moon size={19} />}
         </button>
+
+        <button
+          className="nav-outline-button"
+          type="button"
+          onClick={() => setIsWalletOpen(true)}
+          aria-label="Open Cashu wallet"
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+        >
+          <WalletCards size={17} />
+          <span>{wallet.isUnlocked ? `${wallet.balance} sats` : "Wallet"}</span>
+        </button>
+
         {isSignedIn ? (
           <button className="nav-outline-button" type="button" onClick={signOut}>Sign out</button>
         ) : (
@@ -51,6 +68,8 @@ export default function SpillNavbar({ activeLink }: SpillNavbarProps) {
             <button className="nav-gradient-button" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Get Started</button>
           </>
         )}
+
+        {isWalletOpen && <WalletModal onClose={() => setIsWalletOpen(false)} />}
       </div>
     </header>
   )
