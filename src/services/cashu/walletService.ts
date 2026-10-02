@@ -1,15 +1,16 @@
 import { MintQuoteState, Wallet, getTokenMetadata, normalizeMintUrl, type Proof } from "@cashu/cashu-ts";
-const storageKey = "spill.cashu.wallet.v1", iterations = 210_000;
+const storageKey = "spill.cashu.wallet.v1", iterations = 600_000, legacyIterations = 210_000, minimumPasscodeLength = 8;
 const endpoint = import.meta.env.VITE_LIVEKIT_TOKEN_ENDPOINT ?? "http://localhost:3001/api/livekit/token";
 type PendingQuote = { quote: string; amount: number; request: string; expiresAt?: number };
 type WalletState = { proofs: Proof[]; pending: PendingQuote[]; history: Array<{ id: string; type: "funds" | "received" | "zap" | "premium"; amount: number; at: number }> };
-type EncryptedState = { cipher: string; salt: string; iv: string };
+type EncryptedState = { cipher: string; salt: string; iv: string; iterations?: number };
 function b64(bytes: Uint8Array) { let raw = ""; bytes.forEach((byte) => raw += String.fromCharCode(byte)); return btoa(raw); }
 function unb64(value: string) { return Uint8Array.from(atob(value), (char) => char.charCodeAt(0)); }
 function arrayBuffer(bytes: Uint8Array) { return new Uint8Array(bytes); }
-async function derivedKey(passcode: string, salt: Uint8Array) { const base = await crypto.subtle.importKey("raw", arrayBuffer(new TextEncoder().encode(passcode)), "PBKDF2", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "PBKDF2", salt: arrayBuffer(salt), iterations, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]); }
-async function read(passcode: string): Promise<WalletState> { const raw = localStorage.getItem(storageKey); if (!raw) return { proofs: [], pending: [], history: [] }; const record = JSON.parse(raw) as EncryptedState; try { const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: arrayBuffer(unb64(record.iv)) }, await derivedKey(passcode, unb64(record.salt)), arrayBuffer(unb64(record.cipher))); return JSON.parse(new TextDecoder().decode(plain)) as WalletState; } catch { throw new Error("Incorrect passcode or unreadable wallet."); } }
-async function save(passcode: string, state: WalletState) { const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)); const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv: arrayBuffer(iv) }, await derivedKey(passcode, salt), arrayBuffer(new TextEncoder().encode(JSON.stringify(state)))); localStorage.setItem(storageKey, JSON.stringify({ cipher: b64(new Uint8Array(cipher)), salt: b64(salt), iv: b64(iv) } satisfies EncryptedState)); }
+function assertPasscode(passcode: string) { if (passcode.length < minimumPasscodeLength) throw new Error(`Use at least ${minimumPasscodeLength} characters for your device passcode.`); }
+async function derivedKey(passcode: string, salt: Uint8Array, workFactor = iterations) { const base = await crypto.subtle.importKey("raw", arrayBuffer(new TextEncoder().encode(passcode)), "PBKDF2", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "PBKDF2", salt: arrayBuffer(salt), iterations: workFactor, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]); }
+async function read(passcode: string): Promise<WalletState> { assertPasscode(passcode); const raw = localStorage.getItem(storageKey); if (!raw) return { proofs: [], pending: [], history: [] }; const record = JSON.parse(raw) as EncryptedState; try { const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: arrayBuffer(unb64(record.iv)) }, await derivedKey(passcode, unb64(record.salt), record.iterations ?? legacyIterations), arrayBuffer(unb64(record.cipher))); return JSON.parse(new TextDecoder().decode(plain)) as WalletState; } catch { throw new Error("Incorrect passcode or unreadable wallet."); } }
+async function save(passcode: string, state: WalletState) { assertPasscode(passcode); const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)); const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv: arrayBuffer(iv) }, await derivedKey(passcode, salt), arrayBuffer(new TextEncoder().encode(JSON.stringify(state)))); localStorage.setItem(storageKey, JSON.stringify({ cipher: b64(new Uint8Array(cipher)), salt: b64(salt), iv: b64(iv), iterations } satisfies EncryptedState)); }
 export function validateReceiveMetadata(metadata: { mint: string; unit: string | undefined }, configuredMintUrl: string) {
   if (normalizeMintUrl(metadata.mint) !== normalizeMintUrl(configuredMintUrl)) throw new Error("This wallet only accepts sats from its configured payment provider.");
   if (metadata.unit !== "sat") throw new Error("This wallet only accepts sats from its configured payment provider.");
@@ -22,9 +23,11 @@ export async function claimFundingQuote(passcode: string, quoteId: string) { con
 export async function receiveToken(passcode: string, token: string) { const meta = getTokenMetadata(token), value = await wallet(); validateReceiveMetadata(meta, value.mint.mintUrl); const state = await read(passcode), proofs = await value.receive(token, { requireDleq: true }), amount = proofs.reduce((sum, proof) => sum + Number(proof.amount), 0); state.proofs.push(...proofs); state.history.unshift({ id: crypto.randomUUID(), type: "received", amount, at: Date.now() }); await save(passcode, state); return walletSnapshot(passcode); }
 export async function exportWalletBackup(passcode: string) { return JSON.stringify(await read(passcode)); }
 export async function restoreWalletBackup(passcode: string, backup: string) {
-  let restored: WalletState;
-  try { restored = JSON.parse(backup) as WalletState; } catch { throw new Error("That wallet backup is not valid."); }
+  let restored: WalletState; try { restored = JSON.parse(backup) as WalletState; } catch { throw new Error("That wallet backup is not valid."); }
   if (!Array.isArray(restored.proofs) || !Array.isArray(restored.pending) || !Array.isArray(restored.history)) throw new Error("That wallet backup is not valid.");
-  await save(passcode, restored);
-  return walletSnapshot(passcode);
+  const current = await read(passcode);
+  const proofs = [...current.proofs, ...restored.proofs].filter((proof, index, all) => all.findIndex((item) => item.secret === proof.secret) === index);
+  const pending = [...current.pending, ...restored.pending].filter((item, index, all) => all.findIndex((other) => other.quote === item.quote) === index);
+  const history = [...current.history, ...restored.history].filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index).sort((a, b) => b.at - a.at);
+  await save(passcode, { proofs, pending, history }); return walletSnapshot(passcode);
 }
