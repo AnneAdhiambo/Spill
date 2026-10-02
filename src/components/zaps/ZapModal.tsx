@@ -1,147 +1,343 @@
 import {
   ArrowLeft,
   CheckCircle2,
-  Coins,
-  Copy,
   EyeOff,
+  Plus,
   QrCode,
+  RefreshCw,
   ShieldCheck,
-  WalletCards,
+  Zap,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useBitcoinUsdEstimate } from "../../hooks/useBitcoinUsdEstimate";
-import { usePrivateCreditsDemo } from "../../hooks/usePrivateCreditsDemo";
+import { useState, useMemo } from "react";
+import { useWallet } from "../../hooks/useWallet";
+import { sendNutzap } from "../../services/nostr/nutzapService";
 
 type SupportMode = "anonymous" | "private";
-type PaymentMethod = "credits" | "wallet";
-type ModalView = "support" | "confirm" | "wallet-invoice" | "credit-complete" | "credits-needed";
+type ModalView = "support" | "confirm" | "sending" | "complete" | "add-funds" | "add-funds-invoice";
 
 type ZapModalProps = {
   initialSats?: number;
   targetLabel: string;
+  recipientNostrPubkey?: string;
+  targetEventId?: string;
   onClose: () => void;
 };
 
-function formatUsd(estimate: number | null) {
-  if (estimate === null) return "USD estimate unavailable";
-  return `~ ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(estimate)} USD`;
-}
+// Default fallback Nostr pubkey for demo reports if no pubkey is passed
+const DEMO_RECIPIENT_PUBKEY = "32e1827635450ebb3c5a7d12c1f8e7b2b514439ac10a67eef3d9fd9c5c68e245";
 
-export default function ZapModal({ initialSats = 21, targetLabel, onClose }: ZapModalProps) {
+export default function ZapModal({
+  initialSats = 21,
+  targetLabel,
+  recipientNostrPubkey = DEMO_RECIPIENT_PUBKEY,
+  targetEventId,
+  onClose,
+}: ZapModalProps) {
+  const wallet = useWallet();
   const [amountInput, setAmountInput] = useState(String(initialSats));
   const [supportMode, setSupportMode] = useState<SupportMode>("anonymous");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("credits");
+  const [memoInput, setMemoInput] = useState("");
+  const [passcodeInput, setPasscodeInput] = useState("");
   const [view, setView] = useState<ModalView>("support");
-  const { balance, spendTestCredits } = usePrivateCreditsDemo();
+
+  const [sendingStatus, setSendingStatus] = useState("Preparing Nutzap...");
+  const [error, setError] = useState<string | null>(null);
+  const [sentAmount, setSentAmount] = useState<number>(0);
+
+  // Add Funds Inline State
+  const [invoiceData, setInvoiceData] = useState<{ quoteId: string; invoice: string } | null>(null);
 
   const sats = useMemo(() => {
     const amount = Number.parseInt(amountInput, 10);
     return Number.isFinite(amount) && amount > 0 ? amount : 0;
   }, [amountInput]);
-  const usdEstimate = useBitcoinUsdEstimate(sats);
 
-  function confirmSupport() {
-    if (paymentMethod === "wallet") {
-      setView("wallet-invoice");
+  const hasEnoughBalance = wallet.balance >= sats;
+
+  async function handleSendNutzap(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    setError(null);
+
+    const activePasscode = passcodeInput || sessionStorage.getItem("spill.wallet.session.passcode");
+    if (!activePasscode) {
+      setError("Please enter your device passcode to authorize this Nutzap.");
       return;
     }
 
-    if (balance < sats) {
-      setView("credits-needed");
-      return;
-    }
+    setView("sending");
+    setSendingStatus("Reserving proofs & creating P2PK swap...");
 
-    spendTestCredits(sats);
-    setView("credit-complete");
+    try {
+      await sendNutzap(
+        activePasscode,
+        recipientNostrPubkey,
+        sats,
+        memoInput || undefined,
+        targetEventId
+      );
+      setSentAmount(sats);
+      setView("complete");
+      wallet.refreshState(activePasscode);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to send Nutzap.";
+      setError(msg);
+      setView("confirm");
+    }
+  }
+
+  async function handleCreateInvoice() {
+    try {
+      const needed = Math.max(21, sats - wallet.balance);
+      const res = await wallet.addFundsQuote(needed);
+      setInvoiceData(res);
+      setView("add-funds-invoice");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not create Lightning invoice.";
+      setError(msg);
+    }
   }
 
   return (
     <div className="zap-modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="zap-modal zap-wallet-modal" role="dialog" aria-modal="true" aria-labelledby="zap-modal-title" onMouseDown={(event) => event.stopPropagation()}>
-        <button className="zap-modal-close" type="button" onClick={onClose} aria-label="Close support options"><X size={20} /></button>
+      <section
+        className="zap-modal zap-wallet-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="zap-modal-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="zap-modal-close" type="button" onClick={onClose} aria-label="Close support options">
+          <X size={20} />
+        </button>
 
+        {/* SCREEN 1: AMOUNT & SUPPORT OPTIONS */}
         {view === "support" && (
           <div className="zap-send-screen">
             <p className="zap-recipient-label">Supporting</p>
             <h2 id="zap-modal-title">{targetLabel}</h2>
+
             <label className="zap-wallet-amount">
               <span className="sr-only">Amount in sats</span>
-              <input autoFocus inputMode="numeric" pattern="[0-9]*" type="text" value={amountInput} onChange={(event) => setAmountInput(event.target.value.replace(/\D/g, ""))} />
+              <input
+                autoFocus
+                inputMode="numeric"
+                pattern="[0-9]*"
+                type="text"
+                value={amountInput}
+                onChange={(event) => setAmountInput(event.target.value.replace(/\D/g, ""))}
+              />
               <span>sats</span>
             </label>
-            <p className="zap-usd-estimate">{formatUsd(usdEstimate)}</p>
-            <p className="zap-balance-line">Private Credits balance: <strong>{balance} test sats</strong></p>
 
-            <fieldset className="zap-source-options">
-              <legend>Pay from</legend>
-              <button className={paymentMethod === "credits" ? "is-selected" : ""} type="button" onClick={() => setPaymentMethod("credits")}>
-                <Coins size={20} /><span><strong>Private Credits</strong><small>Private, device-held test balance.</small></span>
-              </button>
-              <button className={paymentMethod === "wallet" ? "is-selected" : ""} type="button" onClick={() => setPaymentMethod("wallet")}>
-                <WalletCards size={20} /><span><strong>Lightning wallet</strong><small>Scan an invoice or open your own wallet.</small></span>
-              </button>
-            </fieldset>
-            <button className="zap-create-invoice" type="button" onClick={() => setView("confirm")} disabled={sats === 0}>Continue</button>
-          </div>
-        )}
+            <div className="zap-amount-options" style={{ margin: "16px 0" }}>
+              {[10, 21, 50, 100].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  className={sats === preset ? "is-selected" : ""}
+                  onClick={() => setAmountInput(String(preset))}
+                >
+                  {preset} sats
+                </button>
+              ))}
+            </div>
 
-        {view === "confirm" && (
-          <div className="zap-confirm-screen">
-            <button className="zap-inline-back" type="button" onClick={() => setView("support")}><ArrowLeft size={16} /> Back</button>
-            <span className="zap-modal-kicker"><ShieldCheck size={15} /> REVIEW SUPPORT</span>
-            <h2 id="zap-modal-title">Send {sats} sats?</h2>
-            <p className="zap-usd-estimate">{formatUsd(usdEstimate)}</p>
-            <dl className="zap-review-details"><div><dt>To</dt><dd>{targetLabel}</dd></div><div><dt>From</dt><dd>{paymentMethod === "credits" ? "Private Credits" : "Lightning wallet"}</dd></div></dl>
-            <fieldset className="zap-privacy-options">
+            <p className="zap-balance-line">
+              Wallet balance: <strong>{wallet.isUnlocked ? `${wallet.balance} sats` : "Locked"}</strong>
+            </p>
+
+            <div style={{ marginTop: "14px", textAlign: "left" }}>
+              <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)", display: "block", marginBottom: "4px" }}>
+                Memo (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="Add a message for the recipient..."
+                value={memoInput}
+                onChange={(e) => setMemoInput(e.target.value)}
+                maxLength={120}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--line)",
+                  background: "var(--bg)",
+                  color: "var(--text)",
+                  fontSize: "14px",
+                }}
+              />
+            </div>
+
+            <fieldset className="zap-privacy-options" style={{ marginTop: "16px" }}>
               <legend>Privacy</legend>
               <label className={supportMode === "anonymous" ? "is-selected" : ""}>
-                <input checked={supportMode === "anonymous"} name="support-privacy" type="radio" onChange={() => setSupportMode("anonymous")} />
+                <input
+                  checked={supportMode === "anonymous"}
+                  name="support-privacy"
+                  type="radio"
+                  onChange={() => setSupportMode("anonymous")}
+                />
                 <ShieldCheck size={20} aria-hidden="true" />
-                <span><strong>Zap anonymously</strong><small>Use a one-time identity. Your Spill profile is not linked.</small></span>
+                <span>
+                  <strong>Zap anonymously</strong>
+                  <small>Peer-to-peer Nutzap with 0% platform fee.</small>
+                </span>
               </label>
               <label className={supportMode === "private" ? "is-selected" : ""}>
-                <input checked={supportMode === "private"} name="support-privacy" type="radio" onChange={() => setSupportMode("private")} />
+                <input
+                  checked={supportMode === "private"}
+                  name="support-privacy"
+                  type="radio"
+                  onChange={() => setSupportMode("private")}
+                />
                 <EyeOff size={20} aria-hidden="true" />
-                <span><strong>Support privately</strong><small>No public zap receipt is shown on the report.</small></span>
+                <span>
+                  <strong>Support privately</strong>
+                  <small>No public receipt link on user profile.</small>
+                </span>
               </label>
             </fieldset>
-            <p className="zap-modal-note">{paymentMethod === "credits" ? "Test credits only. No Cashu token or real payment will be sent." : "Invoice preview only. No wallet payment will be sent."}</p>
-            <button className="zap-create-invoice" type="button" onClick={confirmSupport}>{paymentMethod === "credits" ? "Confirm test support" : "Create Lightning invoice"}</button>
+
+            {hasEnoughBalance ? (
+              <button
+                className="zap-create-invoice"
+                type="button"
+                onClick={() => setView("confirm")}
+                disabled={sats === 0}
+              >
+                Continue
+              </button>
+            ) : (
+              <button
+                className="zap-create-invoice"
+                type="button"
+                onClick={handleCreateInvoice}
+                style={{ background: "#f97316" }}
+              >
+                <Plus size={18} /> Add funds ({sats - wallet.balance} sats needed)
+              </button>
+            )}
           </div>
         )}
 
-        {view === "wallet-invoice" && (
-          <div className="zap-invoice-preview">
-            <button className="zap-inline-back" type="button" onClick={() => setView("confirm")}><ArrowLeft size={16} /> Back</button>
-            <span className="zap-modal-kicker"><QrCode size={15} /> LIGHTNING INVOICE</span>
-            <h2 id="zap-modal-title">Ready for your wallet</h2>
-            <p>{sats} sats for {targetLabel}</p>
-            <div className="zap-qr-placeholder" role="img" aria-label="Lightning invoice QR code placeholder"><QrCode size={74} strokeWidth={1.5} /></div>
-            <p className="zap-invoice-copy">This is an invoice preview. Real invoices will appear after the report is published to Nostr and has a Lightning receiving address.</p>
-            <button className="zap-copy-invoice" type="button" disabled><Copy size={17} /> Invoice available after setup</button>
+        {/* SCREEN 2: CONFIRMATION & PASSCODE */}
+        {view === "confirm" && (
+          <div className="zap-confirm-screen">
+            <button className="zap-inline-back" type="button" onClick={() => setView("support")}>
+              <ArrowLeft size={16} /> Back
+            </button>
+            <span className="zap-modal-kicker">
+              <Zap size={15} /> CONFIRM NUTZAP
+            </span>
+            <h2 id="zap-modal-title">Send {sats} sats?</h2>
+
+            <dl className="zap-review-details">
+              <div>
+                <dt>To</dt>
+                <dd>{targetLabel}</dd>
+              </div>
+              <div>
+                <dt>Protocol</dt>
+                <dd>NIP-61 Cashu Nutzap (P2PK)</dd>
+              </div>
+              <div>
+                <dt>Platform fee</dt>
+                <dd style={{ color: "#16a34a" }}>0% (Direct P2P)</dd>
+              </div>
+            </dl>
+
+            <form onSubmit={handleSendNutzap} style={{ marginTop: "16px", display: "grid", gap: "12px" }}>
+              {!sessionStorage.getItem("spill.wallet.session.passcode") && (
+                <div>
+                  <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)", display: "block", marginBottom: "4px" }}>
+                    Device Passcode
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter device passcode to authorize"
+                    value={passcodeInput}
+                    onChange={(e) => setPasscodeInput(e.target.value)}
+                    required
+                    minLength={8}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid var(--line)",
+                      background: "var(--bg)",
+                      color: "var(--text)",
+                      fontSize: "14px",
+                    }}
+                  />
+                </div>
+              )}
+
+              {error && (
+                <p className="error-message" role="alert" style={{ textAlign: "center" }}>
+                  {error}
+                </p>
+              )}
+
+              <button className="zap-create-invoice" type="submit">
+                <Zap size={18} /> Confirm & Send {sats} sats
+              </button>
+            </form>
           </div>
         )}
 
-        {view === "credits-needed" && (
+        {/* SCREEN 3: SENDING IN PROGRESS */}
+        {view === "sending" && (
           <div className="zap-invoice-preview zap-complete-preview">
-            <span className="zap-modal-kicker"><Coins size={15} /> PRIVATE CREDITS</span>
-            <h2 id="zap-modal-title">Private Credits unavailable</h2>
-            <p>You have {balance} test sats, but this support needs {sats} sats.</p>
-            <p className="zap-invoice-copy">Add credits from your Private Credits wallet, then return to support this reporter.</p>
-            <button className="zap-copy-invoice" type="button" onClick={() => { setPaymentMethod("wallet"); setView("confirm"); }}>Use a Lightning wallet instead</button>
-            <button className="zap-back-button" type="button" onClick={() => setView("support")}>Change support amount</button>
+            <span className="zap-modal-kicker">
+              <RefreshCw size={15} className="animate-spin" /> PROCESSING NUTZAP
+            </span>
+            <h2 id="wallet-modal-title">Sending {sats} sats</h2>
+            <p>{sendingStatus}</p>
+            <div style={{ margin: "24px auto" }}>
+              <RefreshCw size={48} className="animate-spin" style={{ color: "#ff7a1a" }} />
+            </div>
+            <p className="zap-invoice-copy">Creating P2PK-locked output and publishing signed NIP-61 event to Nostr.</p>
           </div>
         )}
 
-        {view === "credit-complete" && (
+        {/* SCREEN 4: COMPLETE SUCCESS */}
+        {view === "complete" && (
           <div className="zap-invoice-preview zap-complete-preview">
-            <span className="zap-modal-kicker"><CheckCircle2 size={15} /> TEST COMPLETE</span>
-            <h2 id="zap-modal-title">Support workflow complete</h2>
-            <p>{sats} test credits were used to support {targetLabel}.</p>
+            <span className="zap-modal-kicker">
+              <CheckCircle2 size={15} /> NUTZAP SENT
+            </span>
+            <h2 id="zap-modal-title">Zapped {sentAmount} sats!</h2>
+            <p>Peer-to-peer Nutzap delivered to {targetLabel} with 0% platform fee.</p>
             <CheckCircle2 className="zap-complete-icon" size={74} strokeWidth={1.4} aria-hidden="true" />
-            <p className="zap-invoice-copy">No Cashu token or real payment was sent. This confirms the interaction flow only.</p>
-            <button className="zap-copy-invoice" type="button" onClick={onClose}>Done</button>
+            <button className="zap-copy-invoice" type="button" onClick={onClose}>
+              Done
+            </button>
+          </div>
+        )}
+
+        {/* SCREEN 5: INLINE ADD FUNDS INVOICE */}
+        {view === "add-funds-invoice" && invoiceData && (
+          <div className="zap-invoice-preview">
+            <button className="zap-inline-back" type="button" onClick={() => setView("support")}>
+              <ArrowLeft size={16} /> Back to support
+            </button>
+            <span className="zap-modal-kicker">
+              <QrCode size={15} /> ADD FUNDS FOR NUTZAP
+            </span>
+            <h2 id="wallet-modal-title">Fund your wallet</h2>
+            <p className="zap-invoice-copy">Scan this invoice with any Lightning wallet to top up your balance.</p>
+
+            <button
+              className="zap-create-invoice"
+              type="button"
+              onClick={() => {
+                onClose();
+              }}
+              style={{ marginTop: "16px" }}
+            >
+              Open Wallet Modal to complete deposit
+            </button>
           </div>
         )}
       </section>
