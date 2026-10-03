@@ -1,0 +1,80 @@
+# Local development services for Spill radio + the demo's Nostr relay.
+#
+#   cd radio
+#   docker compose -f docker-compose.dev.yml up -d --wait
+#
+# Settings come from radio/.env (copy .env.example first). Compose reads that file
+# automatically because it sits next to this one.
+#
+# Container names are kept as spill-postgres, spill-redis, spill-icecast, spill-relay
+# because ../start-demo.sh starts them by name. To run a second copy on one machine,
+# set SPILL_CONTAINER_PREFIX and different ports in .env, and pass `-p <other-name>`.
+#
+# Ports are published on 127.0.0.1 only (Redis has no password). To let other devices
+# on your network reach Icecast or the relay, set SPILL_BIND_ADDR=0.0.0.0 in .env.
+name: spill-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${SPILL_CONTAINER_PREFIX:-spill}-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-blocktek_radio}
+      POSTGRES_USER: ${POSTGRES_USER:-blocktek_radio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in radio/.env (copy .env.example first)}
+    ports:
+      - "${SPILL_BIND_ADDR:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${SPILL_CONTAINER_PREFIX:-spill}-redis
+    restart: unless-stopped
+    ports:
+      - "${SPILL_BIND_ADDR:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  icecast:
+    image: moul/icecast
+    container_name: ${SPILL_CONTAINER_PREFIX:-spill}-icecast
+    restart: unless-stopped
+    # The image's start script rewrites passwords in /etc/icecast2/icecast.xml with sed, which
+    # cannot edit a single-file bind mount. So the committed template is mounted read-only
+    # elsewhere and copied into place on every start.
+    entrypoint: ["/bin/sh", "-c", "cp /config/icecast.xml /etc/icecast2/icecast.xml && exec /start.sh"]
+    environment:
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?Set ICECAST_SOURCE_PASSWORD in radio/.env}
+      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:?Set ICECAST_ADMIN_PASSWORD in radio/.env}
+      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD:-disabled}
+      ICECAST_HOSTNAME: ${ICECAST_HOSTNAME:-localhost}
+    ports:
+      - "${SPILL_BIND_ADDR:-127.0.0.1}:${ICECAST_PORT:-8000}:8000"
+    volumes:
+      - ./infrastructure/docker/icecast.xml:/config/icecast.xml:ro
+
+  relay:
+    image: scsibug/nostr-rs-relay
+    container_name: ${SPILL_CONTAINER_PREFIX:-spill}-relay
+    restart: unless-stopped
+    ports:
+      - "${SPILL_BIND_ADDR:-127.0.0.1}:${RELAY_PORT:-7777}:8080"
+    volumes:
+      - relay-data:/usr/src/app/db
+
+volumes:
+  postgres-data:
+  redis-data:
+  relay-data:

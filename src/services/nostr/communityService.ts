@@ -17,6 +17,7 @@ export type Community = {
 };
 
 export type CommunityPost = {
+  imageAlt?: string;
   id: string;
   content: string;
   pubkey: string;
@@ -25,13 +26,13 @@ export type CommunityPost = {
   comments?: number;
   authorName?: string;
   imageUrl?: string;
-  imageAlt?: string;
+
   sensitiveReason?: SensitiveReason;
 };
 
 export type PostAttachment = {
   imageUrl: string;
-  imageAlt: string;
+  imageAlt?: string;
   sensitiveReason?: SensitiveReason;
 };
 

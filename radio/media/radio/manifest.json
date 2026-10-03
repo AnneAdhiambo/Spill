@@ -1,0 +1,32 @@
+[
+  {
+    "file": "water-in-kibera.mp3",
+    "title": "Water in Kibera",
+    "npub": "npub1zupsftlnpddt70jepjzlw5pgxxtp0u7jhhrtf7awqmqqxghtem0qyn9j4a"
+  },
+  {
+    "file": "mtaro-karibu-na-soko.mp3",
+    "title": "Mtaro karibu na soko",
+    "npub": "npub1esetegxclt87alcsvnzp5fya6cdyxk7x8qfu4p46tpzmkxss32tqz7fjrx"
+  },
+  {
+    "file": "power-cuts-and-small-traders.mp3",
+    "title": "Power cuts and small traders",
+    "npub": "npub16j2dugp5ma73hqqqz7y5m7s6u0wz8rucssa0g0pc8hgvfxfznfcqn67dzk"
+  },
+  {
+    "file": "youth-and-jobs-in-nairobi.mp3",
+    "title": "Youth and jobs in Nairobi",
+    "npub": "npub1uphdlz09djcrkjrqy57c038ysr3gfjxay366ywttqcz8m2ptmpvsawym9w"
+  },
+  {
+    "file": "usalama-wa-mtaa-usiku.mp3",
+    "title": "Usalama wa mtaa usiku",
+    "npub": "npub1vnw7tvtycj6trnakkqss2zfpz92642erh2t9qszquxcclgkr289srjypuz"
+  },
+  {
+    "file": "badnpub.mp3",
+    "title": "Bad",
+    "npub": "npub1notvalid"
+  }
+]

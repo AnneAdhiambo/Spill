@@ -1,0 +1,45 @@
+import { z } from "zod"
+
+const configSchema = z.object({
+  API_HOST: z.string().default("0.0.0.0"),
+  API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  WEB_BASE_URL: z.string().url().default("http://localhost:3000"),
+  // Comma-separated extra browser origins allowed by CORS (the Vite front end).
+  CORS_ORIGINS: z.string().default("http://localhost:5173"),
+  RADIO_TRANSCRIPT_OFFSET_MS: z.coerce.number().int().min(0).max(30000).default(3000),
+  BLOCKTEK_AUTH_MODE: z.enum(["unconfigured", "development", "trusted-proxy"]).default(process.env.NODE_ENV === "production" ? "unconfigured" : "development"),
+  BLOCKTEK_AUTH_SHARED_SECRET: z.string().min(32).optional().or(z.literal("")),
+  DATABASE_URL: z.string().url().optional().or(z.literal("")),
+  REDIS_URL: z.string().url().optional().or(z.literal("")),
+  AI_PROVIDER: z.enum(["development", "openai-compatible", "asi-cloud", "groq"]).default("development"),
+  AI_MODEL: z.string().trim().max(120).optional().or(z.literal("")),
+  AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(60000).default(12000),
+  AI_PROGRAMMING_MODE: z.enum(["DETERMINISTIC", "AI_ASSISTED", "AI_PROGRAMMED"]).default("AI_ASSISTED"),
+  AI_PROVIDER_URL: z.string().url().optional().or(z.literal("")),
+  AI_PROVIDER_API_KEY: z.string().optional().or(z.literal("")),
+  MIDNIGHT_NETWORK: z.string().default("unconfigured"),
+  RADIO_STREAM_URL: z.string().url().optional().or(z.literal("")),
+  RADIO_PUBLIC_STREAM_URL: z.string().url().optional().or(z.literal("")),
+  RADIO_STREAM_NAME: z.string().trim().min(1).max(120).default("Signal / Main"),
+  RADIO_STREAM_ENABLED: z.preprocess((value) => {
+    if (typeof value === "string") return value.toLowerCase() === "true"
+    return value
+  }, z.boolean().default(false)),
+  RADIO_BROADCAST_ENABLED: z.preprocess((value) => typeof value === "string" ? value.toLowerCase() === "true" : value, z.boolean().default(false)),
+  ICECAST_MOUNT: z.string().trim().regex(/^\/.+/).default("/live"),
+  MEDIA_ROOT: z.string().trim().default("/opt/blocktek-radio/media"),
+  MIDNIGHT_NETWORK_ID: z.string().trim().max(120).optional().or(z.literal("")),
+  MIDNIGHT_NODE_URL: z.string().url().optional().or(z.literal("")),
+  MIDNIGHT_INDEXER_URL: z.string().url().optional().or(z.literal("")),
+  MIDNIGHT_PROOF_SERVER_URL: z.string().url().optional().or(z.literal("")),
+  MIDNIGHT_ZK_CONFIG_URL: z.string().url().optional().or(z.literal("")),
+  MIDNIGHT_CONTRACT_ADDRESS: z.string().trim().max(200).optional().or(z.literal("")),
+  MIDNIGHT_WALLET_PUBLIC_ADDRESS: z.string().trim().max(240).optional().or(z.literal("")),
+  MIDNIGHT_VERIFIER_URL: z.string().url().optional().or(z.literal("")),
+})
+
+export type ApiConfig = z.infer<typeof configSchema>
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
+  return configSchema.parse(env)
+}

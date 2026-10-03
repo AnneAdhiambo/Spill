@@ -3,3 +3,7 @@ dist/
 *.tsbuildinfo
 .env
 .env.local
+radio/.env
+radio/node_modules
+radio/.next
+radio/PROMPT.md

@@ -1,7 +1,9 @@
 import LandingPage from "../pages/LandingPage";
 import CommunitiesPage from "../pages/CommunitiesPage";
-import GetStartedPage from "../pages/GetStartedPage";
 import RadioPage from "../pages/RadioPage";
+import PostPage from "../pages/PostPage";
+import FeedPage from "../pages/FeedPage";
+import GetStartedPage from "../pages/GetStartedPage";
 import SpacePage from "../pages/SpacePage";
 
 export function AppRouter() {
@@ -19,6 +21,14 @@ export function AppRouter() {
 
   if (window.location.pathname === "/radio") {
     return <RadioPage />;
+  }
+
+  if (window.location.pathname === "/post") {
+    return <PostPage />;
+  }
+
+  if (window.location.pathname === "/feed") {
+    return <FeedPage />;
   }
 
   return <LandingPage />;

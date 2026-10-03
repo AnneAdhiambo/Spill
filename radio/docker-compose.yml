@@ -1,0 +1,132 @@
+name: blocktek-radio
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL must be set}
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:?NEXT_PUBLIC_API_BASE_URL must be set}
+    ports:
+      - "127.0.0.1:${BLOCKTEK_WEB_BIND_PORT:-3010}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.api
+    env_file:
+      - .env
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      WEB_BASE_URL: ${WEB_BASE_URL:?WEB_BASE_URL must be set}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER must be set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-blocktek_radio}
+      REDIS_URL: redis://redis:6379
+      RADIO_STREAM_URL: ${RADIO_STREAM_URL:-}
+      RADIO_PUBLIC_STREAM_URL: ${RADIO_PUBLIC_STREAM_URL:-}
+      RADIO_STREAM_NAME: ${RADIO_STREAM_NAME:-Signal / Main}
+      RADIO_STREAM_ENABLED: ${RADIO_STREAM_ENABLED:-false}
+      RADIO_BROADCAST_ENABLED: ${RADIO_BROADCAST_ENABLED:-false}
+    ports:
+      - "127.0.0.1:${BLOCKTEK_API_BIND_PORT:-4010}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/v1/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER must be set}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-blocktek_radio}
+      MEDIA_ROOT: /opt/blocktek-radio/media
+      FALLBACK_AUDIO_PATH: ${FALLBACK_AUDIO_PATH:-/opt/blocktek-radio/media/fallback}
+      RADIO_BROADCAST_ENABLED: ${RADIO_BROADCAST_ENABLED:-false}
+      RADIO_TEST_TONE_ENABLED: ${RADIO_TEST_TONE_ENABLED:-false}
+      RADIO_STATION_ID: ${RADIO_STATION_ID:-spill-main}
+      RADIO_STATION_NAME: ${RADIO_STATION_NAME:-Spill}
+      RADIO_AUDIO_BITRATE: ${RADIO_AUDIO_BITRATE:-128k}
+      RADIO_METADATA_INTERVAL_SECONDS: ${RADIO_METADATA_INTERVAL_SECONDS:-180}
+      ICECAST_SOURCE_USER: ${ICECAST_SOURCE_USER:-source}
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?ICECAST_SOURCE_PASSWORD must be set}
+      ICECAST_HOST: icecast
+      ICECAST_PORT: 8000
+    volumes:
+      - ${BLOCKTEK_MEDIA_PATH:-./media}:/opt/blocktek-radio/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+      icecast:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.50
+  icecast:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.icecast
+    user: "9999:950"
+    environment:
+      ICECAST_SOURCE_PASSWORD: ${ICECAST_SOURCE_PASSWORD:?ICECAST_SOURCE_PASSWORD must be set}
+      ICECAST_ADMIN_PASSWORD: ${ICECAST_ADMIN_PASSWORD:?ICECAST_ADMIN_PASSWORD must be set}
+      ICECAST_RELAY_PASSWORD: ${ICECAST_RELAY_PASSWORD:-disabled}
+      ICECAST_HOSTNAME: ${ICECAST_HOSTNAME:-localhost}
+      ICECAST_CORS_ORIGIN: ${ICECAST_CORS_ORIGIN:-https://blockteck-radio.vercel.app}
+      ICECAST_MAX_CLIENTS: ${ICECAST_MAX_CLIENTS:-100}
+      ICECAST_MAX_SOURCES: ${ICECAST_MAX_SOURCES:-2}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:8000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:${BLOCKTEK_ICECAST_BIND_PORT:-8000}:8000"
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-blocktek_radio}
+      POSTGRES_USER: ${POSTGRES_USER:-blocktek_radio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  default:
+    name: blocktek-radio-network
+    driver: bridge
