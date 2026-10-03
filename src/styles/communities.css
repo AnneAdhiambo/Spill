@@ -565,6 +565,118 @@
 :root[data-theme="dark"] .zap-review-details div { color: #c8bcb2; }
 :root[data-theme="dark"] .zap-qr-placeholder { border-color: rgba(255,255,255,.15); color: #211b16; background: repeating-linear-gradient(45deg, #eee7de 0 4px, #fff 4px 8px); }
 
+/* PWA Install Sticker & Mobile Banner */
+.pwa-install-sticker {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(22, 17, 14, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 122, 26, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  max-width: 440px;
+  animation: slideUpSticker 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpSticker {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pwa-sticker-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-sticker-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #1c1511;
+  padding: 4px;
+}
+
+.pwa-sticker-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.pwa-sticker-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #ff7a1a;
+}
+
+.pwa-sticker-desc {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #c8bcb2;
+  line-height: 1.35;
+}
+
+.pwa-sticker-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pwa-install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff7a1a, #e65200);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pwa-dismiss-btn {
+  background: transparent;
+  border: none;
+  color: #8a7d72;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-dismiss-btn:hover {
+  color: #fff;
+}
+
+@media (max-width: 520px) {
+  .pwa-install-sticker {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    max-width: calc(100% - 24px);
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pwa-sticker-actions {
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 520px) {
   .zap-modal-backdrop { padding: 12px; }
   .zap-modal { padding: 26px 20px 20px; border-radius: 20px; }

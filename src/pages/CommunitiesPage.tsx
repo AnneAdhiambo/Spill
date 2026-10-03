@@ -4,6 +4,7 @@ import CommunityHeader from "../components/communities/CommunityHeader";
 import CommunitySidebar from "../components/communities/CommunitySidebar";
 import PostComposer from "../components/communities/PostComposer";
 import TopNavbar from "../components/communities/TopNavbar";
+import PwaInstallSticker from "../components/layout/PwaInstallSticker";
 import { reports as mockReports, type ReportItem } from "../data/communityReports";
 import { communityService, type Community, type CommunityPost } from "../services/nostr/communityService";
 import "../styles/communities.css";
@@ -70,8 +71,9 @@ export default function CommunitiesPage() {
             </>
           )}
         </section>
-        <CommunitySidebar communities={communities} activeCommunityId={activeCommunityId} joinedIds={joinedIds} onSelectCommunity={setActiveCommunityId} onJoinSuccess={loadJoinedState} />
+      <CommunitySidebar communities={communities} activeCommunityId={activeCommunityId} joinedIds={joinedIds} onSelectCommunity={setActiveCommunityId} onJoinSuccess={loadJoinedState} />
       </main>
+      <PwaInstallSticker />
     </div>
   );
 }
