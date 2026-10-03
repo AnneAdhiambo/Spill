@@ -1,15 +1,14 @@
 export default function ReportingCard() {
   return (
-    <article className="highlight-card report-card">
+    <article className="highlight-card report-card" id="report">
       <div className="highlight-copy">
-        <span className="card-kicker">REPORT</span>
-        <h2>Turn moments into meaningful change</h2>
+        <span className="card-kicker">01 / REPORT & DOCUMENT</span>
+        <h2>Some stories<br />need to be seen.</h2>
         <p>
-          Document issues in your community with photos, location and context.
-          Your reports stay safe and sync automatically when you're online.
+          Give the moments that matter a voice. Share photos and context from your community, even when you're offline.
         </p>
-        <a href="#report">
-          Learn more <span aria-hidden="true">→</span>
+        <a href="/get-started">
+          Start your story <span aria-hidden="true">↗</span>
         </a>
       </div>
 

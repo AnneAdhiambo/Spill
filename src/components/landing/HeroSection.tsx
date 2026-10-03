@@ -1,4 +1,4 @@
-import { LockKeyhole, Network, UsersRound, WifiOff } from "lucide-react";
+import { Network } from "lucide-react";
 import HeroVisual from "./HeroVisual";
 
 export default function HeroSection() {
@@ -8,39 +8,17 @@ export default function HeroSection() {
         <h1>Stories that survive silence</h1>
 
         <p className="hero-tagline">Spill what matters. Speak without permission.</p>
+        <p className="hero-description">A place for everyday voices to share stories, start conversations and find their community.</p>
+        <div className="hero-actions">
+          <a className="primary-button large" href="/get-started">Find your voice <span aria-hidden="true">↗</span></a>
+          <a className="hero-discover" href="#discover">Explore Spill <span aria-hidden="true">↓</span></a>
+        </div>
 
         <p className="nostr-note">
           <Network size={16} aria-hidden="true" /> Built on Nostr for decentralized publishing.
         </p>
 
-        <div className="trust-row" aria-label="Core platform promises">
-          <div className="trust-item">
-            <LockKeyhole size={30} />
-            <span>
-              Your identity.
-              <br />
-              Your control.
-            </span>
-          </div>
 
-          <div className="trust-item">
-            <WifiOff size={30} />
-            <span>
-              Works offline.
-              <br />
-              Syncs automatically.
-            </span>
-          </div>
-
-          <div className="trust-item">
-            <UsersRound size={30} />
-            <span>
-              Built for
-              <br />
-              African communities.
-            </span>
-          </div>
-        </div>
       </div>
 
       <HeroVisual />
