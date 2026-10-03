@@ -67,19 +67,31 @@ function fromSecretKey(sk: Uint8Array): Identity {
 }
 
 // ---- storage -----------------------------------------------------------
+// The key is kept in sessionStorage only: it lasts for this tab and is wiped
+// when the tab closes or the user signs out. Nothing is persisted on the device.
+
+function clearOldDeviceKeys(): void {
+  // Remove keys saved by earlier versions, which used localStorage.
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // storage unavailable: nothing to clear
+  }
+}
 
 export function saveIdentity(identity: Pick<Identity, "npub" | "nsec">): void {
   const record: StoredIdentity = { npub: identity.npub, nsec: identity.nsec };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+  clearOldDeviceKeys();
 }
 
 export function hasStoredIdentity(): boolean {
-  return localStorage.getItem(STORAGE_KEY) !== null;
+  return sessionStorage.getItem(STORAGE_KEY) !== null;
 }
 
 export function getStoredNpub(): string | null {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = sessionStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
     return (JSON.parse(raw) as StoredIdentity).npub;
@@ -89,23 +101,22 @@ export function getStoredNpub(): string | null {
 }
 
 /**
- * Returns the saved key. The passcode argument is ignored: it only exists so
- * existing callers (communityService) keep working now that there is no passcode.
+ * Returns the key for the current session. The passcode argument is ignored:
+ * it only exists so existing callers (communityService) keep working.
  */
 export async function unlockIdentity(
   _passcode?: string
 ): Promise<{ privateKeyHex: string; npub: string }> {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) throw new Error("No saved identity on this device.");
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  if (!raw) throw new Error("Please sign in first.");
   const record = JSON.parse(raw) as StoredIdentity;
   const sk = decodeNsec(record.nsec);
   return { privateKeyHex: bytesToHex(sk), npub: record.npub };
 }
 
-/** Remove the saved key from this device entirely. */
+/** Remove the key from this session (and any old copy on the device). */
 export function clearStoredIdentity(): void {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  clearOldDeviceKeys();
   endIdentitySession();
 }
 
@@ -116,8 +127,10 @@ export function beginIdentitySession(): void {
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
+/** Sign out: ends the session and wipes the key from this tab. */
 export function endIdentitySession(): void {
   sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
@@ -126,6 +139,9 @@ export function hasActiveIdentitySession(): boolean {
 }
 
 export const identitySessionEvent = SESSION_EVENT;
+
+// Delete anything left on the device by older versions.
+clearOldDeviceKeys();
 
 // ---- ephemeral (pseudonym) keys ----------------------------------------
 
