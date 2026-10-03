@@ -1,6 +1,7 @@
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "../../hooks/useTheme"
 import { useIdentitySession } from "../../hooks/useIdentitySession"
+import SyncStatusIndicator from "../../features/offline/SyncStatusIndicator"
 
 const links = [
   { label: "Home", href: "/" },
@@ -34,6 +35,7 @@ export default function TopNavbar() {
       </nav>
 
       <div className="navbar-actions">
+        <SyncStatusIndicator />
         <button
           className="icon-circle"
           type="button"

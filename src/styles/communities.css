@@ -686,3 +686,31 @@
 :root[data-theme="dark"] .community-list-item {
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+/* Offline sync state */
+.composer-notice { margin: 0; color: var(--muted); font-size: 13px; }
+.post-sync-badge {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; white-space: nowrap;
+  color: var(--muted); font-size: 12px; font-weight: 700;
+}
+.post-sync-badge--retrying, .post-sync-badge--failed { color: #b45309; }
+.post-sync-badge--synced { color: #15803d; }
+.post-sync-retry {
+  padding: 2px 8px; border: 1px solid currentColor; border-radius: 999px;
+  color: inherit; background: transparent; font: inherit; cursor: pointer;
+}
+.sync-status-indicator {
+  min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25);
+  color: #fff; background: rgba(255,255,255,.06); font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.sync-status-indicator--offline { border-color: rgba(255,122,26,.6); color: #ffb37a; cursor: default; }
+.nearby-sync-card {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  margin: 16px 16px 0; padding: 12px 16px; border: 1px dashed var(--line); border-radius: 14px; color: var(--text);
+}
+.nearby-sync-copy { display: grid; gap: 2px; font-size: 14px; }
+.nearby-sync-copy span { color: var(--muted); font-size: 13px; }
+.nearby-sync-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.nearby-sync-actions .composer-attach-button { position: relative; }
+.nearby-sync-actions button:disabled { opacity: .55; cursor: default; }
+.nearby-sync-card .composer-notice { flex-basis: 100%; }

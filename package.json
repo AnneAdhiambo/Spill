@@ -8,7 +8,8 @@
     "dev:token": "node --env-file-if-exists=.env.local server/livekit-token-server.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.24",
@@ -27,7 +28,9 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.5.0",
+    "fake-indexeddb": "^6.2.5",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^3.2.7"
   }
 }

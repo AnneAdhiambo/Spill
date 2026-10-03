@@ -8,6 +8,24 @@
   "background_color": "#0D0C0B",
   "theme_color": "#ff5727",
   "orientation": "portrait-primary",
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "bundle",
+          "accept": [
+            "text/plain",
+            "application/json",
+            ".txt",
+            ".json"
+          ]
+        }
+      ]
+    }
+  },
   "icons": [
     {
       "src": "/assets/spill-logo.png",

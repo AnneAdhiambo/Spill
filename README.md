@@ -14,4 +14,7 @@ Open the URL Vite prints, then visit `/` for the landing page or `/communities` 
 ```sh
 npm run typecheck
 npm run build
+npm test
 ```
+
+Offline support and nearby (Bluetooth) sync are described in [docs/offline-sync.md](docs/offline-sync.md).
