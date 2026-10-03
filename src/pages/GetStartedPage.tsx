@@ -110,7 +110,7 @@ export default function GetStartedPage() {
         {step === "welcome" && (
           <>
             <h1>Welcome to Spill</h1>
-            <p className="auth-sub">Your identity is a Nostr key. It stays on your device.</p>
+            <p className="auth-sub">Your identity is a Nostr key. Keep it safe, because you paste it each time you open Spill.</p>
 
             {storedNpub && (
               <>
