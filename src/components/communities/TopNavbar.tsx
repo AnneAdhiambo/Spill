@@ -43,6 +43,21 @@ export default function TopNavbar() {
         >
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
+        <button
+          className="nav-button secondary"
+          type="button"
+          onClick={() => {
+            const btn = document.querySelector(".pwa-install-btn") as HTMLButtonElement | null;
+            if (btn) btn.click();
+            else alert("To install Spill on mobile/desktop: Open browser menu (⋮ or Share) and tap 'Add to Home Screen' or 'Install App'.");
+          }}
+          aria-label="Install Spill App"
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+        >
+          <Moon size={18} style={{ display: "none" }} />
+          <span>Install App</span>
+        </button>
+
         {isSignedIn ? (
           <button className="nav-button secondary" type="button" onClick={signOut}>Sign out</button>
         ) : (
