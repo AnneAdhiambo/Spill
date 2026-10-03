@@ -5,21 +5,32 @@ import PostPage from "../pages/PostPage";
 import FeedPage from "../pages/FeedPage";
 import GetStartedPage from "../pages/GetStartedPage";
 import SpacePage from "../pages/SpacePage";
+import { hasActiveIdentitySession } from "../features/identity/keys";
+
+const protectedPaths = ["/communities", "/space", "/radio"];
 
 export function AppRouter() {
-  if (window.location.pathname === "/communities") {
+  const path = window.location.pathname;
+
+  // App pages need a signed-in session; everyone else goes to the login page.
+  if (protectedPaths.includes(path) && !hasActiveIdentitySession()) {
+    window.location.replace("/get-started");
+    return null;
+  }
+
+  if (path === "/communities") {
     return <CommunitiesPage />;
   }
 
-  if (window.location.pathname === "/get-started") {
+  if (path === "/get-started") {
     return <GetStartedPage />;
   }
 
-  if (window.location.pathname === "/space") {
+  if (path === "/space") {
     return <SpacePage />;
   }
 
-  if (window.location.pathname === "/radio") {
+  if (path === "/radio") {
     return <RadioPage />;
   }
 
