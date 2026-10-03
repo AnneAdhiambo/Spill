@@ -1,0 +1,499 @@
+{
+  "id": "rec-a3d5d7770d26",
+  "title": "Youth and jobs in Nairobi",
+  "npub": "npub1uphdlz09djcrkjrqy57c038ysr3gfjxay366ywttqcz8m2ptmpvsawym9w",
+  "space": null,
+  "language": "English",
+  "durationSec": 29.44,
+  "audioSha256": "a3d5d7770d261a393253f57d500442f38ca61dd82d4512972cc87b38bd81dccb",
+  "transcript": {
+    "text": "Let us talk about young people and work. Many of us finished school and have been looking for a job for more than a year. Some are doing casual labor, some are selling goods by the roadside, and some have simply stopped looking. Employers ask for experience, but nobody will give us the first chance. We would like to hear what is working for you. Has anyone found a training program that led to real work? What should local leaders do to open the door for young people?",
+    "language": "English",
+    "segments": [
+      {
+        "start": 0,
+        "end": 2.52,
+        "text": "Let us talk about young people and work.",
+        "uncertain": false
+      },
+      {
+        "start": 2.9199998,
+        "end": 7.06,
+        "text": "Many of us finished school and have been looking for a job for more than a year.",
+        "uncertain": false
+      },
+      {
+        "start": 7.5,
+        "end": 13.679999,
+        "text": "Some are doing casual labor, some are selling goods by the roadside, and some have simply stopped looking.",
+        "uncertain": false
+      },
+      {
+        "start": 14.139999,
+        "end": 18.56,
+        "text": "Employers ask for experience, but nobody will give us the first chance.",
+        "uncertain": false
+      },
+      {
+        "start": 18.98,
+        "end": 21.4,
+        "text": "We would like to hear what is working for you.",
+        "uncertain": false
+      },
+      {
+        "start": 21.4,
+        "end": 25.22,
+        "text": "Has anyone found a training program that led to real work?",
+        "uncertain": false
+      },
+      {
+        "start": 25.66,
+        "end": 28.939999,
+        "text": "What should local leaders do to open the door for young people?",
+        "uncertain": false
+      }
+    ],
+    "words": [
+      {
+        "start": 0,
+        "end": 0.16,
+        "word": "Let"
+      },
+      {
+        "start": 0.16,
+        "end": 0.38,
+        "word": "us"
+      },
+      {
+        "start": 0.38,
+        "end": 0.68,
+        "word": "talk"
+      },
+      {
+        "start": 0.68,
+        "end": 1.02,
+        "word": "about"
+      },
+      {
+        "start": 1.02,
+        "end": 1.32,
+        "word": "young"
+      },
+      {
+        "start": 1.32,
+        "end": 1.74,
+        "word": "people"
+      },
+      {
+        "start": 1.74,
+        "end": 2.08,
+        "word": "and"
+      },
+      {
+        "start": 2.08,
+        "end": 2.94,
+        "word": "work."
+      },
+      {
+        "start": 2.96,
+        "end": 3.1,
+        "word": "Many"
+      },
+      {
+        "start": 3.1,
+        "end": 3.3,
+        "word": "of"
+      },
+      {
+        "start": 3.3,
+        "end": 3.48,
+        "word": "us"
+      },
+      {
+        "start": 3.48,
+        "end": 3.84,
+        "word": "finished"
+      },
+      {
+        "start": 3.84,
+        "end": 4.22,
+        "word": "school"
+      },
+      {
+        "start": 4.22,
+        "end": 4.56,
+        "word": "and"
+      },
+      {
+        "start": 4.56,
+        "end": 4.8,
+        "word": "have"
+      },
+      {
+        "start": 4.8,
+        "end": 4.98,
+        "word": "been"
+      },
+      {
+        "start": 4.98,
+        "end": 5.28,
+        "word": "looking"
+      },
+      {
+        "start": 5.28,
+        "end": 5.6,
+        "word": "for"
+      },
+      {
+        "start": 5.6,
+        "end": 5.72,
+        "word": "a"
+      },
+      {
+        "start": 5.72,
+        "end": 5.92,
+        "word": "job"
+      },
+      {
+        "start": 5.92,
+        "end": 6.14,
+        "word": "for"
+      },
+      {
+        "start": 6.14,
+        "end": 6.4,
+        "word": "more"
+      },
+      {
+        "start": 6.4,
+        "end": 6.64,
+        "word": "than"
+      },
+      {
+        "start": 6.64,
+        "end": 6.78,
+        "word": "a"
+      },
+      {
+        "start": 6.78,
+        "end": 7.54,
+        "word": "year."
+      },
+      {
+        "start": 7.54,
+        "end": 7.64,
+        "word": "Some"
+      },
+      {
+        "start": 7.64,
+        "end": 7.82,
+        "word": "are"
+      },
+      {
+        "start": 7.82,
+        "end": 8.12,
+        "word": "doing"
+      },
+      {
+        "start": 8.12,
+        "end": 8.62,
+        "word": "casual"
+      },
+      {
+        "start": 8.62,
+        "end": 9.34,
+        "word": "labor,"
+      },
+      {
+        "start": 9.34,
+        "end": 9.44,
+        "word": "some"
+      },
+      {
+        "start": 9.44,
+        "end": 9.66,
+        "word": "are"
+      },
+      {
+        "start": 9.66,
+        "end": 9.98,
+        "word": "selling"
+      },
+      {
+        "start": 9.98,
+        "end": 10.34,
+        "word": "goods"
+      },
+      {
+        "start": 10.34,
+        "end": 10.6,
+        "word": "by"
+      },
+      {
+        "start": 10.6,
+        "end": 10.78,
+        "word": "the"
+      },
+      {
+        "start": 10.78,
+        "end": 11.58,
+        "word": "roadside,"
+      },
+      {
+        "start": 11.58,
+        "end": 11.72,
+        "word": "and"
+      },
+      {
+        "start": 11.72,
+        "end": 12,
+        "word": "some"
+      },
+      {
+        "start": 12,
+        "end": 12.3,
+        "word": "have"
+      },
+      {
+        "start": 12.3,
+        "end": 12.7,
+        "word": "simply"
+      },
+      {
+        "start": 12.7,
+        "end": 13.12,
+        "word": "stopped"
+      },
+      {
+        "start": 13.12,
+        "end": 14.16,
+        "word": "looking."
+      },
+      {
+        "start": 14.32,
+        "end": 14.68,
+        "word": "Employers"
+      },
+      {
+        "start": 14.68,
+        "end": 14.98,
+        "word": "ask"
+      },
+      {
+        "start": 14.98,
+        "end": 15.2,
+        "word": "for"
+      },
+      {
+        "start": 15.2,
+        "end": 16.24,
+        "word": "experience,"
+      },
+      {
+        "start": 16.24,
+        "end": 16.44,
+        "word": "but"
+      },
+      {
+        "start": 16.44,
+        "end": 16.88,
+        "word": "nobody"
+      },
+      {
+        "start": 16.88,
+        "end": 17.16,
+        "word": "will"
+      },
+      {
+        "start": 17.16,
+        "end": 17.36,
+        "word": "give"
+      },
+      {
+        "start": 17.36,
+        "end": 17.56,
+        "word": "us"
+      },
+      {
+        "start": 17.56,
+        "end": 17.74,
+        "word": "the"
+      },
+      {
+        "start": 17.74,
+        "end": 18.04,
+        "word": "first"
+      },
+      {
+        "start": 18.04,
+        "end": 19.04,
+        "word": "chance."
+      },
+      {
+        "start": 19.02,
+        "end": 19.16,
+        "word": "We"
+      },
+      {
+        "start": 19.16,
+        "end": 19.38,
+        "word": "would"
+      },
+      {
+        "start": 19.38,
+        "end": 19.64,
+        "word": "like"
+      },
+      {
+        "start": 19.64,
+        "end": 19.88,
+        "word": "to"
+      },
+      {
+        "start": 19.88,
+        "end": 20.1,
+        "word": "hear"
+      },
+      {
+        "start": 20.1,
+        "end": 20.3,
+        "word": "what"
+      },
+      {
+        "start": 20.3,
+        "end": 20.46,
+        "word": "is"
+      },
+      {
+        "start": 20.46,
+        "end": 20.92,
+        "word": "working"
+      },
+      {
+        "start": 20.92,
+        "end": 21.2,
+        "word": "for"
+      },
+      {
+        "start": 21.2,
+        "end": 21.38,
+        "word": "you."
+      },
+      {
+        "start": 21.8,
+        "end": 21.98,
+        "word": "Has"
+      },
+      {
+        "start": 21.98,
+        "end": 22.36,
+        "word": "anyone"
+      },
+      {
+        "start": 22.36,
+        "end": 22.78,
+        "word": "found"
+      },
+      {
+        "start": 22.78,
+        "end": 22.96,
+        "word": "a"
+      },
+      {
+        "start": 22.96,
+        "end": 23.34,
+        "word": "training"
+      },
+      {
+        "start": 23.34,
+        "end": 23.86,
+        "word": "program"
+      },
+      {
+        "start": 23.86,
+        "end": 24.18,
+        "word": "that"
+      },
+      {
+        "start": 24.18,
+        "end": 24.4,
+        "word": "led"
+      },
+      {
+        "start": 24.4,
+        "end": 24.58,
+        "word": "to"
+      },
+      {
+        "start": 24.58,
+        "end": 24.84,
+        "word": "real"
+      },
+      {
+        "start": 24.84,
+        "end": 25.7,
+        "word": "work?"
+      },
+      {
+        "start": 25.68,
+        "end": 25.86,
+        "word": "What"
+      },
+      {
+        "start": 25.86,
+        "end": 26.16,
+        "word": "should"
+      },
+      {
+        "start": 26.16,
+        "end": 26.56,
+        "word": "local"
+      },
+      {
+        "start": 26.56,
+        "end": 26.9,
+        "word": "leaders"
+      },
+      {
+        "start": 26.9,
+        "end": 27.1,
+        "word": "do"
+      },
+      {
+        "start": 27.1,
+        "end": 27.3,
+        "word": "to"
+      },
+      {
+        "start": 27.3,
+        "end": 27.62,
+        "word": "open"
+      },
+      {
+        "start": 27.62,
+        "end": 27.88,
+        "word": "the"
+      },
+      {
+        "start": 27.88,
+        "end": 28.06,
+        "word": "door"
+      },
+      {
+        "start": 28.06,
+        "end": 28.28,
+        "word": "for"
+      },
+      {
+        "start": 28.28,
+        "end": 28.54,
+        "word": "young"
+      },
+      {
+        "start": 28.54,
+        "end": 29.42,
+        "word": "people?"
+      }
+    ]
+  }
+}

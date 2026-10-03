@@ -1,0 +1,443 @@
+{
+  "id": "rec-eae585a69aed",
+  "title": "Usalama wa mtaa usiku",
+  "npub": "npub1vnw7tvtycj6trnakkqss2zfpz92642erh2t9qszquxcclgkr289srjypuz",
+  "space": null,
+  "language": "Latin",
+  "durationSec": 42.44898,
+  "audioSha256": "eae585a69aedc9a37b2e7c663d1c27e2276708eb7d25afe5b4de49db6c7a5edd",
+  "transcript": {
+    "text": "Caribu quennie mazungumzoia leo cucusu salama oantaa oetu usicu. Pituo chamatatu pime hamishwa, la sasa watu oana tembea bizalicu ficavuto. Oa mama oana odopa cutembea badaia saa bili usicu. Hakuna taa zabarabarali, la doria zapolisini cace sala. Tu na pendecea violosi oa uta oa oece ta, la tu unde picundi ciaulindi oa la mii cita cacio si viciara la polisi. Ta fa valitu si viciare ili oa toto oe tu, la oa zazi oe tu oa oe salama.",
+    "language": "Latin",
+    "segments": [
+      {
+        "start": 0,
+        "end": 6.3399997,
+        "text": "Caribu quennie mazungumzoia leo cucusu salama oantaa oetu usicu.",
+        "uncertain": false
+      },
+      {
+        "start": 6.8199997,
+        "end": 13.559999,
+        "text": "Pituo chamatatu pime hamishwa, la sasa watu oana tembea bizalicu ficavuto.",
+        "uncertain": false
+      },
+      {
+        "start": 13.559999,
+        "end": 18.699999,
+        "text": "Oa mama oana odopa cutembea badaia saa bili usicu.",
+        "uncertain": false
+      },
+      {
+        "start": 19.14,
+        "end": 24.539999,
+        "text": "Hakuna taa zabarabarali, la doria zapolisini cace sala.",
+        "uncertain": false
+      },
+      {
+        "start": 24.539999,
+        "end": 35.3,
+        "text": "Tu na pendecea violosi oa uta oa oece ta, la tu unde picundi ciaulindi oa la mii cita cacio si viciara la polisi.",
+        "uncertain": false
+      },
+      {
+        "start": 35.82,
+        "end": 41.879997,
+        "text": "Ta fa valitu si viciare ili oa toto oe tu, la oa zazi oe tu oa oe salama.",
+        "uncertain": false
+      }
+    ],
+    "words": [
+      {
+        "start": 0,
+        "end": 0.72,
+        "word": "Caribu"
+      },
+      {
+        "start": 0.72,
+        "end": 1.38,
+        "word": "quennie"
+      },
+      {
+        "start": 1.38,
+        "end": 2.6,
+        "word": "mazungumzoia"
+      },
+      {
+        "start": 2.6,
+        "end": 2.98,
+        "word": "leo"
+      },
+      {
+        "start": 2.98,
+        "end": 3.68,
+        "word": "cucusu"
+      },
+      {
+        "start": 3.68,
+        "end": 4.42,
+        "word": "salama"
+      },
+      {
+        "start": 4.42,
+        "end": 5.18,
+        "word": "oantaa"
+      },
+      {
+        "start": 5.18,
+        "end": 5.6,
+        "word": "oetu"
+      },
+      {
+        "start": 5.6,
+        "end": 6.74,
+        "word": "usicu."
+      },
+      {
+        "start": 6.82,
+        "end": 7.3,
+        "word": "Pituo"
+      },
+      {
+        "start": 7.3,
+        "end": 8.24,
+        "word": "chamatatu"
+      },
+      {
+        "start": 8.24,
+        "end": 8.58,
+        "word": "pime"
+      },
+      {
+        "start": 8.58,
+        "end": 9.68,
+        "word": "hamishwa,"
+      },
+      {
+        "start": 9.68,
+        "end": 9.86,
+        "word": "la"
+      },
+      {
+        "start": 9.86,
+        "end": 10.34,
+        "word": "sasa"
+      },
+      {
+        "start": 10.34,
+        "end": 10.88,
+        "word": "watu"
+      },
+      {
+        "start": 10.88,
+        "end": 11.16,
+        "word": "oana"
+      },
+      {
+        "start": 11.16,
+        "end": 11.78,
+        "word": "tembea"
+      },
+      {
+        "start": 11.78,
+        "end": 12.62,
+        "word": "bizalicu"
+      },
+      {
+        "start": 12.62,
+        "end": 14.04,
+        "word": "ficavuto."
+      },
+      {
+        "start": 14.04,
+        "end": 14.26,
+        "word": "Oa"
+      },
+      {
+        "start": 14.26,
+        "end": 14.56,
+        "word": "mama"
+      },
+      {
+        "start": 14.56,
+        "end": 14.9,
+        "word": "oana"
+      },
+      {
+        "start": 14.9,
+        "end": 15.52,
+        "word": "odopa"
+      },
+      {
+        "start": 15.52,
+        "end": 16.4,
+        "word": "cutembea"
+      },
+      {
+        "start": 16.4,
+        "end": 17.2,
+        "word": "badaia"
+      },
+      {
+        "start": 17.2,
+        "end": 17.62,
+        "word": "saa"
+      },
+      {
+        "start": 17.62,
+        "end": 17.94,
+        "word": "bili"
+      },
+      {
+        "start": 17.94,
+        "end": 19.16,
+        "word": "usicu."
+      },
+      {
+        "start": 19.14,
+        "end": 19.7,
+        "word": "Hakuna"
+      },
+      {
+        "start": 19.7,
+        "end": 20.26,
+        "word": "taa"
+      },
+      {
+        "start": 20.26,
+        "end": 21.76,
+        "word": "zabarabarali,"
+      },
+      {
+        "start": 21.76,
+        "end": 21.9,
+        "word": "la"
+      },
+      {
+        "start": 21.9,
+        "end": 22.34,
+        "word": "doria"
+      },
+      {
+        "start": 22.34,
+        "end": 23.52,
+        "word": "zapolisini"
+      },
+      {
+        "start": 23.52,
+        "end": 24,
+        "word": "cace"
+      },
+      {
+        "start": 24,
+        "end": 24.94,
+        "word": "sala."
+      },
+      {
+        "start": 24.54,
+        "end": 25.28,
+        "word": "Tu"
+      },
+      {
+        "start": 25.28,
+        "end": 25.44,
+        "word": "na"
+      },
+      {
+        "start": 25.44,
+        "end": 26.34,
+        "word": "pendecea"
+      },
+      {
+        "start": 26.34,
+        "end": 27.08,
+        "word": "violosi"
+      },
+      {
+        "start": 27.08,
+        "end": 27.5,
+        "word": "oa"
+      },
+      {
+        "start": 27.5,
+        "end": 27.84,
+        "word": "uta"
+      },
+      {
+        "start": 27.84,
+        "end": 28.08,
+        "word": "oa"
+      },
+      {
+        "start": 28.08,
+        "end": 28.56,
+        "word": "oece"
+      },
+      {
+        "start": 28.56,
+        "end": 29.28,
+        "word": "ta,"
+      },
+      {
+        "start": 29.28,
+        "end": 29.48,
+        "word": "la"
+      },
+      {
+        "start": 29.48,
+        "end": 29.66,
+        "word": "tu"
+      },
+      {
+        "start": 29.66,
+        "end": 30.04,
+        "word": "unde"
+      },
+      {
+        "start": 30.04,
+        "end": 30.82,
+        "word": "picundi"
+      },
+      {
+        "start": 30.82,
+        "end": 31.64,
+        "word": "ciaulindi"
+      },
+      {
+        "start": 31.64,
+        "end": 31.98,
+        "word": "oa"
+      },
+      {
+        "start": 31.98,
+        "end": 32.14,
+        "word": "la"
+      },
+      {
+        "start": 32.14,
+        "end": 32.52,
+        "word": "mii"
+      },
+      {
+        "start": 32.52,
+        "end": 32.82,
+        "word": "cita"
+      },
+      {
+        "start": 32.82,
+        "end": 33.26,
+        "word": "cacio"
+      },
+      {
+        "start": 33.26,
+        "end": 33.5,
+        "word": "si"
+      },
+      {
+        "start": 33.5,
+        "end": 34.2,
+        "word": "viciara"
+      },
+      {
+        "start": 34.2,
+        "end": 34.6,
+        "word": "la"
+      },
+      {
+        "start": 34.6,
+        "end": 35.78,
+        "word": "polisi."
+      },
+      {
+        "start": 35.8,
+        "end": 36,
+        "word": "Ta"
+      },
+      {
+        "start": 36,
+        "end": 36.24,
+        "word": "fa"
+      },
+      {
+        "start": 36.24,
+        "end": 36.74,
+        "word": "valitu"
+      },
+      {
+        "start": 36.74,
+        "end": 37.02,
+        "word": "si"
+      },
+      {
+        "start": 37.02,
+        "end": 37.76,
+        "word": "viciare"
+      },
+      {
+        "start": 37.76,
+        "end": 38.22,
+        "word": "ili"
+      },
+      {
+        "start": 38.22,
+        "end": 38.42,
+        "word": "oa"
+      },
+      {
+        "start": 38.42,
+        "end": 38.8,
+        "word": "toto"
+      },
+      {
+        "start": 38.8,
+        "end": 39.14,
+        "word": "oe"
+      },
+      {
+        "start": 39.14,
+        "end": 39.48,
+        "word": "tu,"
+      },
+      {
+        "start": 39.48,
+        "end": 39.62,
+        "word": "la"
+      },
+      {
+        "start": 39.62,
+        "end": 39.84,
+        "word": "oa"
+      },
+      {
+        "start": 39.84,
+        "end": 40.24,
+        "word": "zazi"
+      },
+      {
+        "start": 40.24,
+        "end": 40.6,
+        "word": "oe"
+      },
+      {
+        "start": 40.6,
+        "end": 40.76,
+        "word": "tu"
+      },
+      {
+        "start": 40.76,
+        "end": 41.08,
+        "word": "oa"
+      },
+      {
+        "start": 41.08,
+        "end": 41.3,
+        "word": "oe"
+      },
+      {
+        "start": 41.3,
+        "end": 41.86,
+        "word": "salama."
+      }
+    ]
+  }
+}

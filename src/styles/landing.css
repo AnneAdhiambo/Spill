@@ -1,0 +1,114 @@
+/* Spacious editorial layout, scoped to the home page. */
+.landing-page .site-header { width: min(1280px, calc(100% - 80px)); height: 96px; grid-template-columns: 180px 1fr auto; gap: 30px; }
+.landing-page .brand img { width: 155px; }
+.landing-page .desktop-nav { justify-content: center; }
+.landing-page .hero-content { width: min(1280px, calc(100% - 80px)); min-height: 700px; display: flex; align-items: center; }
+.landing-page .hero-copy { width: 49%; padding: 72px 0 96px; }
+.landing-page .hero-copy h1 { font-size: clamp(48px, 4.6vw, 72px); line-height: 1.04; max-width: 610px; }
+.landing-page .hero-tagline { font-size: 23px; line-height: 1.5; margin: 25px 0 0; max-width: 440px; }
+.landing-page .hero-description { font-size: 17px; line-height: 1.8; color: #bbb5b0; max-width: 410px; margin: 20px 0 30px; }
+.landing-page .hero-actions { align-items: center; gap: 28px; margin-bottom: 32px; }
+.landing-page .hero-actions .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 24px; min-height: 54px; }
+.hero-discover { font-size: 14px; display: inline-flex; gap: 16px; align-items: center; }
+.landing-page .nostr-note { font-size: 12px; font-weight: 500; }
+.trust-carousel { display: flex; align-items: center; gap: 16px; padding: 30px clamp(20px, 4vw, 64px); background: #11100e; border-top: 1px solid #ffffff12; color: #fafaf9; }
+.trust-carousel-window { flex: 1; min-width: 0; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+.trust-carousel-track { display: flex; width: max-content; animation: trust-scroll 26s linear infinite; }
+.trust-carousel-group { display: flex; align-items: center; justify-content: space-around; flex: none; width: max(900px, calc(100vw - clamp(40px, 8vw, 128px))); list-style: none; margin: 0; padding: 0; }
+.trust-carousel-item { display: flex; align-items: center; gap: 16px; padding: 8px 32px; font-size: 15px; font-weight: 650; line-height: 1.7; }
+.trust-carousel-item svg { flex: none; color: #ff7a1a; }
+.trust-carousel-item span span { color: #bab3ac; font-weight: 450; }
+@keyframes trust-scroll { to { transform: translateX(-50%); } }
+:root[data-theme="light"] .trust-carousel { background: #eee8df; color: #24201c; border-color: #24201c12; }
+:root[data-theme="light"] .trust-carousel-item span span { color: #625b55; }
+.landing-page .hero-visual { width: 62%; right: -60px; top: 50%; transform: translateY(-50%); }
+.landing-intro { text-align: center; max-width: 720px; margin: auto; padding: 112px 24px 72px; color: #1d1b19; }
+.landing-intro h2, .journey-heading h2 { margin: 20px 0; font-size: clamp(32px, 3.1vw, 46px); line-height: 1.16; letter-spacing: -.045em; }
+.landing-intro > p:not(.card-kicker), .journey-heading p { color: #726b64; font-size: 16px; line-height: 1.8; }
+.landing-intro > svg { margin-top: 22px; color: #df542e; }
+.landing-page .product-highlights { width: min(1180px, calc(100% - 96px)); display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 0 0 110px; }
+.landing-page .highlight-card { border: 0; border-radius: 24px; min-height: 420px; grid-template-columns: 1fr; padding: 40px; transition: box-shadow .3s, transform .3s; }
+.landing-page .highlight-card:hover { box-shadow: 0 18px 44px #4930230d; }
+.landing-page .highlight-copy { padding: 0; }
+.landing-page .highlight-card h2 { font-size: clamp(30px, 2.6vw, 40px); line-height: 1.12; max-width: 360px; margin: 18px 0; }
+.landing-page .highlight-card p { max-width: 370px; font-size: 16px; line-height: 1.8; margin-bottom: 26px; }
+.landing-page .highlight-card a { display: inline-flex; align-items: center; gap: 14px; color: #b83a20; }
+.landing-page .report-card { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; align-items: center; padding: 64px 72px; min-height: 470px; background: #eeeee8; }
+.landing-page .report-card h2 { font-size: clamp(36px, 3.4vw, 52px); }
+.landing-page .report-visual { width: 270px; max-width: 85%; margin: 0; justify-self: center; filter: drop-shadow(0 18px 22px #292b2014); }
+.landing-page .space-card { background: #f0e9e7; }
+.landing-page .communities-card { background: #eee8dd; }
+.landing-page .space-visual, .landing-page .community-visual { width: 190px; max-width: 65%; margin: 32px 10px 0 0; }
+.journey-section { color: #24201c; background: #fffdfa; padding: 96px max(48px, calc((100% - 1180px) / 2)) 100px; }
+.journey-heading { max-width: 560px; }
+.journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; margin: 60px 0 40px; }
+.journey-step { border-top: 1px solid #ded7cf; padding-top: 28px; }
+.step-number { font-size: 14px; color: #ba472b; }
+.journey-step h3 { font-size: 22px; letter-spacing: -.03em; margin: 28px 0 14px; }
+.journey-step p { font-size: 15px; line-height: 1.8; color: #726b64; }
+.journey-link { display: inline-flex; align-items: center; gap: 16px; font-size: 15px; font-weight: 650; color: #b83a20; }
+.landing-page .impact-section { width: 100%; padding: 100px max(48px, calc((100% - 1180px) / 2)); grid-template-columns: 1.1fr 1fr; gap: 54px; min-height: 430px; }
+.landing-page .impact-copy h2 { font-size: clamp(32px, 3.2vw, 48px); line-height: 1.18; }
+.landing-page .impact-promises { grid-template-columns: 1fr 1fr; gap: 40px; }
+.landing-page .impact-promise { font-size: 13px; gap: 14px; }
+.landing-page .impact-promise svg { color: #ff8a51; }
+.landing-page .impact-people { display: none; }
+.landing-page .impact-button { grid-column: 1; justify-self: start; }
+.landing-footer { width: min(1180px, calc(100% - 96px)); margin: auto; padding: 40px 0; display: flex; align-items: center; gap: 28px; color: #726b64; font-size: 13px; }
+.landing-footer img { width: 105px; }
+.landing-footer nav { margin-left: auto; display: flex; gap: 24px; flex-wrap: wrap; }
+.landing-page a:focus-visible, .landing-page button:focus-visible { outline: 3px solid #f78038; outline-offset: 6px; }
+.landing-footer a:hover, .hero-discover:hover { color: #d85326; }
+.scroll-reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+.scroll-reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: no-preference) {
+  .landing-page .hero-copy { animation: landing-enter .8s ease both; }
+  .landing-intro > svg { animation: landing-nudge 2.8s ease-in-out infinite; }
+  @keyframes landing-enter { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes landing-nudge { 50% { transform: translateY(7px); } }
+}
+@media (max-width: 1000px) {
+  .landing-page .site-header { grid-template-columns: 140px 1fr; }
+  .landing-page .desktop-nav { display: none; }
+  .landing-page .header-actions { justify-self: end; }
+  .landing-page .hero-content { display: block; min-height: 0; }
+  .landing-page .hero-shell { min-height: 0; }
+  .landing-page .hero-copy { width: 100%; max-width: 620px; padding: 60px 0 25px; }
+  .landing-page .hero-visual { position: relative; top: auto; right: auto; transform: none; width: min(720px, 100%); margin: 0 auto; }
+  .landing-page .highlight-card { padding: 32px; }
+  .landing-page .report-card { padding: 48px; }
+  .journey-grid { gap: 28px; }
+  .landing-footer { flex-wrap: wrap; }
+  .landing-footer nav { margin-left: 0; }
+}
+@media (max-width: 600px) {
+  .landing-page .site-header, .landing-page .hero-content { width: calc(100% - 40px); }
+  .landing-page .site-header { height: 80px; grid-template-columns: 110px 1fr; gap: 12px; }
+  .landing-page .brand img { width: 120px; }
+  .landing-page .hero-copy { padding-top: 42px; }
+  .landing-page .hero-copy h1 { font-size: 46px; }
+  .landing-page .hero-tagline { font-size: 20px; }
+  .landing-page .hero-actions { gap: 20px; }
+  .landing-page .hero-visual { margin-top: 25px; }
+  .landing-intro { padding: 72px 24px 44px; }
+  .landing-page .product-highlights { width: calc(100% - 40px); grid-template-columns: 1fr; gap: 24px; padding-bottom: 64px; }
+  .landing-page .highlight-card { padding: 30px; min-height: 0; }
+  .landing-page .report-card { grid-template-columns: 1fr; }
+  .landing-page .report-visual { width: 230px; margin-top: 35px; }
+  .journey-section { padding: 64px 24px; }
+  .journey-grid { grid-template-columns: 1fr; gap: 24px; margin-top: 36px; }
+  .journey-step h3 { margin-top: 16px; }
+  .landing-page .impact-section { padding: 64px 24px; grid-template-columns: 1fr; gap: 40px; }
+  .landing-page .impact-promise { justify-items: start; text-align: left; }
+  .landing-footer { width: calc(100% - 48px); gap: 16px; }
+  .landing-footer nav { gap: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .landing-page *, .landing-page *::before, .landing-page *::after { animation: none !important; transition: none !important; }
+  .scroll-reveal { opacity: 1; transform: none; }
+  .trust-carousel-window { mask-image: none; }
+  .trust-carousel-track { width: 100%; }
+  .trust-carousel-group { width: 100%; flex-wrap: wrap; justify-content: center; gap: 16px; }
+  .trust-carousel-group[aria-hidden="true"] { display: none; }
+}
