@@ -1,4 +1,4 @@
-import { Headphones, LockKeyhole, Mic2, MoreHorizontal, Play, Tag, UsersRound, Zap } from "lucide-react";
+import {  LockKeyhole, Mic2, MoreHorizontal, Tag, UsersRound, Zap } from "lucide-react";
 import { useState } from "react";
 
 import ZapModal from "../zaps/ZapModal";
