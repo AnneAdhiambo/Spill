@@ -131,6 +131,14 @@ export function beginIdentitySession(): void {
 export function endIdentitySession(): void {
   sessionStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem(STORAGE_KEY);
+  // Wipe per-user app data so the next person on this device doesn't see it.
+  for (const key of ["spill.joined", "spill.community-posts"]) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // storage unavailable
+    }
+  }
   window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
