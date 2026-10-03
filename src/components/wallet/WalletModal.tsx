@@ -11,13 +11,16 @@ import {
   QrCode,
   RefreshCw,
   ShieldCheck,
+  Trash2,
   Upload,
   WalletCards,
   X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useWallet } from "../../hooks/useWallet";
+import { useBitcoinUsdEstimate } from "../../hooks/useBitcoinUsdEstimate";
 
 type WalletModalProps = {
   onClose: () => void;
@@ -65,6 +68,9 @@ export default function WalletModal({ onClose }: WalletModalProps) {
     const val = Number.parseInt(amountInput, 10);
     return Number.isFinite(val) && val > 0 ? val : 0;
   }, [amountInput]);
+
+  const walletUsd = useBitcoinUsdEstimate(wallet.balance);
+  const addFundsUsd = useBitcoinUsdEstimate(parsedAmount);
 
   // Auto-polling for active invoice
   useEffect(() => {
@@ -187,7 +193,16 @@ export default function WalletModal({ onClose }: WalletModalProps) {
     reader.readAsText(file);
   }
 
-  return (
+  function handleResetWallet() {
+    if (window.confirm("Are you sure you want to reset the Cashu wallet on this device? This will clear local wallet data so you can create a fresh wallet for your current account.")) {
+      wallet.resetWallet();
+      setPasscodeInput("");
+      setConfirmPasscode("");
+      setSubView("home");
+    }
+  }
+
+  return createPortal(
     <div className="zap-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         className="zap-modal zap-wallet-modal"
@@ -292,6 +307,28 @@ export default function WalletModal({ onClose }: WalletModalProps) {
                   ? "Unlock Wallet"
                   : "Create & Initialize Wallet"}
               </button>
+
+              {wallet.walletExists && (
+                <button
+                  type="button"
+                  onClick={handleResetWallet}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#dc2626",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    marginTop: "8px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "5px",
+                  }}
+                >
+                  <Trash2 size={14} /> Reset local wallet for a new account
+                </button>
+              )}
             </form>
           </div>
         )}
@@ -322,9 +359,14 @@ export default function WalletModal({ onClose }: WalletModalProps) {
               </button>
             </div>
 
-            <h2 id="wallet-modal-title" style={{ fontSize: "36px", marginTop: "12px" }}>
+            <h2 id="wallet-modal-title" style={{ fontSize: "36px", marginTop: "12px", marginBottom: "2px" }}>
               {wallet.balance.toLocaleString()} <span style={{ fontSize: "20px", fontWeight: 700 }}>sats</span>
             </h2>
+            {walletUsd !== null && (
+              <p style={{ margin: "2px 0 10px", color: "var(--muted)", fontSize: "15px", fontWeight: 650 }}>
+                ≈ ${walletUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </p>
+            )}
 
             {wallet.isCheckingPending && (
               <div
@@ -528,6 +570,12 @@ export default function WalletModal({ onClose }: WalletModalProps) {
               />
               <span>sats</span>
             </label>
+
+            {addFundsUsd !== null && (
+              <p className="zap-usd-estimate">
+                ≈ ${addFundsUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </p>
+            )}
 
             <div className="zap-amount-options" style={{ margin: "20px 0" }}>
               {[10, 21, 50, 100].map((amt) => (
@@ -852,10 +900,37 @@ export default function WalletModal({ onClose }: WalletModalProps) {
                   Restore & Merge
                 </button>
               </div>
+
+              <div style={{ padding: "14px", border: "1px solid rgba(220, 38, 38, 0.2)", borderRadius: "14px", background: "rgba(220, 38, 38, 0.04)" }}>
+                <h4 style={{ margin: "0 0 6px", fontSize: "15px", color: "#dc2626" }}>Reset Device Wallet</h4>
+                <p style={{ margin: "0 0 12px", fontSize: "13px", color: "var(--muted)" }}>
+                  Clear local wallet data on this device to create a fresh wallet for a new account.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetWallet}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 16px",
+                    borderRadius: "10px",
+                    border: "none",
+                    background: "#dc2626",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Trash2 size={16} /> Reset Device Wallet
+                </button>
+              </div>
             </div>
           </div>
         )}
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -10,7 +10,9 @@ import {
   X,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useWallet } from "../../hooks/useWallet";
+import { useBitcoinUsdEstimate } from "../../hooks/useBitcoinUsdEstimate";
 import { sendNutzap } from "../../services/nostr/nutzapService";
 
 type SupportMode = "anonymous" | "private";
@@ -52,6 +54,8 @@ export default function ZapModal({
     const amount = Number.parseInt(amountInput, 10);
     return Number.isFinite(amount) && amount > 0 ? amount : 0;
   }, [amountInput]);
+
+  const zapUsd = useBitcoinUsdEstimate(sats);
 
   const hasEnoughBalance = wallet.balance >= sats;
 
@@ -98,7 +102,7 @@ export default function ZapModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="zap-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         className="zap-modal zap-wallet-modal"
@@ -129,6 +133,12 @@ export default function ZapModal({
               />
               <span>sats</span>
             </label>
+
+            {zapUsd !== null && (
+              <p className="zap-usd-estimate">
+                ≈ ${zapUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              </p>
+            )}
 
             <div className="zap-amount-options" style={{ margin: "16px 0" }}>
               {[10, 21, 50, 100].map((preset) => (
@@ -337,6 +347,7 @@ export default function ZapModal({
           </div>
         )}
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

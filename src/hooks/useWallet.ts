@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   claimFundingQuote,
+  clearWallet,
   createFundingQuote,
   exportWalletBackup,
   hasWallet,
@@ -254,6 +255,18 @@ export function useWallet() {
     }
   }, [passcode, syncStateFromSnapshot]);
 
+  const resetWallet = useCallback(() => {
+    sessionStorage.removeItem(sessionPasscodeKey);
+    clearWallet();
+    setPasscode(null);
+    setIsUnlocked(false);
+    setWalletExists(false);
+    setBalance(0);
+    setPending([]);
+    setHistory([]);
+    setError(null);
+  }, []);
+
   return {
     walletExists,
     isUnlocked,
@@ -267,6 +280,7 @@ export function useWallet() {
     unlock,
     createPasscode,
     lock,
+    resetWallet,
     addFundsQuote,
     claimQuote,
     receiveCashuToken,
