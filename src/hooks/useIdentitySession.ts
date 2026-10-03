@@ -20,6 +20,7 @@ export function useIdentitySession() {
   }, []);
 
   const signOut = useCallback(() => {
+    sessionStorage.removeItem("spill.wallet.session.passcode");
     endIdentitySession();
     setIsSignedIn(false);
     window.location.pathname = "/";
