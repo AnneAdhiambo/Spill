@@ -5,6 +5,7 @@ import CreateSpacePanel from "../components/space/CreateSpacePanel"
 import LiveAudioConnection from "../components/space/LiveAudioConnection"
 import LiveRoomCard from "../components/space/LiveRoomCard"
 import NewSpaceCard from "../components/space/NewSpaceCard"
+import RecordingsList from "../components/space/RecordingsList"
 import SpaceHeader from "../components/space/SpaceHeader"
 import UpcomingRooms from "../components/space/UpcomingRooms"
 import { requestLiveKitToken, type LiveKitRole, type LiveKitSession } from "../services/livekit/tokenClient"
@@ -100,11 +101,7 @@ export default function SpacePage() {
               <UpcomingRooms scheduledSpaces={scheduledSpaces} />
             </div>
           ) : (
-            <div className="recordings-empty">
-              <span>RECORDINGS</span>
-              <h2>Nothing saved yet.</h2>
-              <p>Recorded public rooms will appear here when replay is enabled.</p>
-            </div>
+            <RecordingsList />
           )}
         </section>
 

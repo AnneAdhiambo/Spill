@@ -20,6 +20,8 @@ media/**/*.wav
 media/**/*.flac
 media/**/*.m4a
 media/**/*.aac
+media/**/*.mpeg
+media/**/*.transcript.json
 
 # Common ignores
 node_modules

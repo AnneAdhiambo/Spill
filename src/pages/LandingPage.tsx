@@ -18,7 +18,7 @@ export default function LandingPage() {
         }
       })
     }, { threshold: 0.12 })
-    page.current?.querySelectorAll(".highlight-card, .journey-step, .impact-section").forEach(element => {
+    page.current?.querySelectorAll(".journey-step, .impact-section").forEach(element => {
       element.classList.add("scroll-reveal")
       observer.observe(element)
     })

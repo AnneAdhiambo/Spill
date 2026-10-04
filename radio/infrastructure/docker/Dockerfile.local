@@ -1,0 +1,17 @@
+FROM node:24-alpine
+RUN apk add --no-cache ffmpeg && npm install --global pnpm@10.7.0
+WORKDIR /workspace
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/worker/package.json apps/worker/package.json
+COPY packages/ai/package.json packages/ai/package.json
+COPY packages/midnight/package.json packages/midnight/package.json
+COPY packages/radio-core/package.json packages/radio-core/package.json
+COPY packages/types/package.json packages/types/package.json
+RUN pnpm --filter @blocktek/api... --filter @blocktek/worker... install --frozen-lockfile
+COPY apps/api apps/api
+COPY apps/shared apps/shared
+COPY apps/worker apps/worker
+COPY packages packages
+USER node
+CMD ["pnpm", "--filter", "@blocktek/api", "start"]

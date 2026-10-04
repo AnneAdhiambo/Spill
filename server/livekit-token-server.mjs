@@ -172,4 +172,4 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, () => console.log(`LiveKit token service listening on http://localhost:${port}`));
+server.listen(port, allowDemoHost ? "127.0.0.1" : undefined, () => console.log(`LiveKit token service listening on http://localhost:${port}`));
