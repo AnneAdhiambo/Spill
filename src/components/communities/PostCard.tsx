@@ -41,9 +41,7 @@ function usePhotoStatus(src: string | null): "loading" | "ok" | "error" {
   return status;
 }
 
-function PostPhoto({ sha256, sensitiveReason }: { sha256: string; sensitiveReason: string | null }) {
-  // Built from the viewer's own API base, not from the host stored in the event.
-  const src = `${API_URL}/media/${sha256}`;
+function PostPhoto({ src, sensitiveReason }: { src: string; sensitiveReason: string | null }) {
   const status = usePhotoStatus(src);
   if (status === "error") {
     return <div className="pc-photo-missing" role="img" aria-label="Photo unavailable"><ImageOff size={22} aria-hidden="true" /><span>Photo unavailable</span></div>;
@@ -95,14 +93,16 @@ export default function PostCard({ post, community, communityIndex, showCommunit
     window.setTimeout(() => setShareNote(null), 2500);
   }
 
+  // Real posts: built from the viewer's own API base, not the host stored in the event.
+  const photoSrc = post.photoSrc ?? (post.photoSha256 ? `${API_URL}/media/${post.photoSha256}` : null);
   const time = relativeTime(post.createdAt);
   const hasCommunity = showCommunity && post.communityId && community;
 
   return (
-    <article className={`report-card pc-card${post.photoSha256 ? "" : " report-card--text-only"}`}>
-      {post.photoSha256 && (
+    <article className={`report-card pc-card${photoSrc ? "" : " report-card--text-only"}`}>
+      {photoSrc && (
         <div className="report-image-wrap post-photo-wrap">
-          <PostPhoto sha256={post.photoSha256} sensitiveReason={post.sensitiveReason} />
+          <PostPhoto src={photoSrc} sensitiveReason={post.sensitiveReason} />
         </div>
       )}
       <div className="report-body">
@@ -146,7 +146,7 @@ export default function PostCard({ post, community, communityIndex, showCommunit
         </div>
       </div>
 
-      {zapOpen && <PostZapModal post={{ id: post.id, pubkey: post.pubkey, content: post.text, createdAt: post.createdAt }} onClose={() => setZapOpen(false)} />}
+      {zapOpen && <PostZapModal demo={post.isDemo} post={{ id: post.id, pubkey: post.pubkey, content: post.text, createdAt: post.createdAt }} onClose={() => setZapOpen(false)} />}
     </article>
   );
 }

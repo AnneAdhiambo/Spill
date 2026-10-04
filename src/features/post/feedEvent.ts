@@ -14,6 +14,10 @@ export type FeedPost = {
   sensitiveReason: string | null
   /** True when a relay delivered it, or the sync queue says a relay accepted it. */
   onRelay: boolean
+  /** Demo posts only: a local image path used instead of the media API. */
+  photoSrc?: string
+  /** Demo posts only: never published, never queued. */
+  isDemo?: boolean
 }
 
 const SCOPE_RE = /^[A-Za-z0-9_-]{1,64}$/

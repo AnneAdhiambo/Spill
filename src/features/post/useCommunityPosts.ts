@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FEED_LIMIT, NOSTR_READ_RELAYS } from "./config"
+import { DEMO_COMMUNITY_ID, DEMO_POSTS } from "./demoPosts"
 import { mergePosts, parseCacheEntry, parsePostEvent, type FeedPost } from "./feedEvent"
 import { pool } from "./publish"
 import { communityAddress } from "../../services/nostr/communityTags"
@@ -78,6 +79,10 @@ export function useCommunityPosts(activeCommunityId: string | null, communityIds
     return () => { off(); window.clearInterval(iv) }
   }, [activeCommunityId, refreshLocal])
 
-  const posts = useMemo(() => mergePosts(relayPosts, localPosts), [relayPosts, localPosts])
+  // Demo posts are display-only: merged here, never signed, queued or published.
+  const posts = useMemo(() => {
+    const demo = !activeCommunityId || activeCommunityId === DEMO_COMMUNITY_ID ? DEMO_POSTS : []
+    return mergePosts(relayPosts, localPosts, demo)
+  }, [relayPosts, localPosts, activeCommunityId])
   return { posts, state, refreshLocal }
 }
