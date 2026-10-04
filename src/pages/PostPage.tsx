@@ -4,13 +4,13 @@ import TopNavbar from "../components/communities/TopNavbar"
 import { API_URL, MAX_POST_CHARS } from "../features/post/config"
 import { cleanPhoto, type CleanPhoto } from "../features/post/image"
 import { publishPost } from "../features/post/publish"
-import { OneTimeKeySigner } from "../features/post/signer"
+import { SessionSigner } from "../features/post/signer"
 import { useDictation } from "../features/post/useDictation"
 import "../styles/communities.css"
 import "../styles/post.css"
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
-const signer = new OneTimeKeySigner()
+const signer = new SessionSigner()
 
 export default function PostPage() {
   const community = new URLSearchParams(window.location.search).get("community")?.trim() || ""
@@ -138,8 +138,8 @@ export default function PostPage() {
       {confirming && (
         <div className="post-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
           <div className="post-modal-box">
-            <h2 id="confirm-title">Post publicly?</h2>
-            <p>Published posts can’t be reliably deleted.</p>
+            <h2 id="confirm-title">Post as your session pseudonym?</h2>
+            <p>Posts you make while signed in share this pseudonym. Published posts are public and can't be reliably deleted.</p>
             <div className="post-modal-actions">
               <button type="button" onClick={() => setConfirming(false)} disabled={publishing}>Cancel</button>
               <button type="button" className="post-submit" onClick={publish} disabled={publishing}>{publishing ? "Publishing…" : "Confirm"}</button>

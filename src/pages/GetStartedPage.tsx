@@ -229,7 +229,9 @@ export default function GetStartedPage() {
               className="primary-button auth-wide"
               type="button"
               onClick={() => {
-                window.location.pathname = "/communities";
+                // Only same-site paths are allowed as a return target.
+                const next = new URLSearchParams(window.location.search).get("next");
+                window.location.assign(next && /^\/(?!\/)/.test(next) ? next : "/communities");
               }}
             >
               Continue to Spill
