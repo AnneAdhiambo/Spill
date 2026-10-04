@@ -13,7 +13,7 @@ const now = Math.floor(Date.now() / 1000)
 type Demo = { n: string; hoursAgo: number; text: string; sensitive?: "violence" | "death" }
 
 const DEMOS: Demo[] = [
-  { n: "01", hoursAgo: 1, text: "Seeing this news about Mulinge Muteti being found alive after days missing. I'm relieved, but I want to hear it from his family and from Vocal Africa directly before I share more. Who has spoken to them?" },
+  { n: "01", hoursAgo: 1, text: "Seeing news that an activist was found alive after days missing. I'm relieved, but I want to hear it from the family and the organisation directly before I share more. Who has spoken to them?" },
   { n: "02", hoursAgo: 3, text: "I was a few metres from this corner when the tear gas started. Everyone's eyes were burning and the smoke was so thick I lost my friends for ten minutes. I'm writing this from a shop where we sheltered." },
   { n: "03", hoursAgo: 5, text: "Two coffins were left in the middle of the road in town today. Nobody said a word, people just stood and watched. I don't have the names, so I'm only posting what I saw.", sensitive: "death" },
   { n: "04", hoursAgo: 6, text: "I helped carry this young man out of the crowd. He was bleeding badly and we ran to find a motorbike to take him to hospital. I don't know how he is now. Please tell me if you hear anything.", sensitive: "violence" },
@@ -23,7 +23,7 @@ const DEMOS: Demo[] = [
   { n: "08", hoursAgo: 20, text: "I joined the march in Lagos today. Hundreds of us, mostly young people, shouting for change. The mood was loud but peaceful where I stood." },
   { n: "09", hoursAgo: 26, text: "This woman held up her cooking pot and shouted about hunger. I've never forgotten that image. Prices at my local market doubled this year, and I know families skipping meals." },
   { n: "10", hoursAgo: 30, text: "I stood with families holding photos of their missing loved ones outside the president's office. Some had come since morning with no answers. They just want to know where their children are." },
-  { n: "11", hoursAgo: 48, text: "Following the Albert Ojwang trial closely. The witness said he was told to delete CCTV footage but formatted the drive instead. I'm trying to confirm the details through the court record before I say more." },
+  { n: "11", hoursAgo: 48, text: "Following a murder trial closely. A protected witness said he was told to delete CCTV footage at the police station but formatted the drive instead. I'm trying to confirm the details through the court record before I say more." },
 ]
 
 export const DEMO_POSTS: FeedPost[] = DEMOS.map((d) => ({
