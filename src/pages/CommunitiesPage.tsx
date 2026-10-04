@@ -5,6 +5,7 @@ import CommunitySidebar from "../components/communities/CommunitySidebar";
 import PostComposer from "../components/communities/PostComposer";
 import TopNavbar from "../components/communities/TopNavbar";
 import PwaInstallSticker from "../components/layout/PwaInstallSticker";
+import NearbySyncCard from "../features/offline/NearbySyncCard";
 import { reports as mockReports, type ReportItem } from "../data/communityReports";
 import { communityService, type Community, type CommunityPost } from "../services/nostr/communityService";
 import "../styles/communities.css";
@@ -56,6 +57,7 @@ export default function CommunitiesPage() {
       <TopNavbar />
       <main className="communities-layout">
         <section className="main-column">
+          <NearbySyncCard onReceived={() => activeCommunityId && loadPosts(activeCommunityId)} />
           {activeCommunityId ? (
             <>
               <CommunityHeader community={activeCommunity} loading={loadingCommunities} isJoined={isJoined} onJoinSuccess={loadJoinedState} onBack={() => setActiveCommunityId(null)} />

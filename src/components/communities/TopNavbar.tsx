@@ -2,6 +2,7 @@ import { Moon, Sun, WalletCards } from "lucide-react"
 import { useState } from "react"
 import { useTheme } from "../../hooks/useTheme"
 import { useIdentitySession } from "../../hooks/useIdentitySession"
+import SyncStatusIndicator from "../../features/offline/SyncStatusIndicator"
 import { useWallet } from "../../hooks/useWallet"
 import WalletModal from "../wallet/WalletModal"
 
@@ -39,6 +40,7 @@ export default function TopNavbar() {
       </nav>
 
       <div className="navbar-actions">
+        <SyncStatusIndicator />
         <button
           className="icon-circle"
           type="button"

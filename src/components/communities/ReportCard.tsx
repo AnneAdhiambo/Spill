@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import type { ReportItem } from "../../data/communityReports";
 import type { CommunityPost } from "../../services/nostr/communityService";
+import PostSyncBadge from "../../features/offline/PostSyncBadge";
 import ZapModal from "../zaps/ZapModal";
 import MediaTrustBadge from "./MediaTrustBadge";
 import SensitiveMedia from "./SensitiveMedia";
@@ -62,6 +63,7 @@ export default function ReportCard({ report }: ReportCardProps) {
                 <span className="identity-chip">{identityMode}</span>
               </div>
               <p>{timeAgo} · Name and location protected</p>
+              {isPost && <PostSyncBadge entityId={report.id} />}
             </div>
           </div>
 
