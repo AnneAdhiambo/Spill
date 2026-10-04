@@ -4,7 +4,7 @@ import { join, relative } from "node:path"
 import { promisify } from "node:util"
 import type { BroadcastQueueItem } from "@blocktek/radio-core"
 
-const AUDIO_EXTENSIONS = new Set([".mp3", ".ogg", ".opus", ".wav", ".flac", ".m4a", ".aac"])
+const AUDIO_EXTENSIONS = new Set([".mp3", ".mpeg", ".ogg", ".opus", ".wav", ".flac", ".m4a", ".aac"])
 const execFileAsync = promisify(execFile)
 
 async function probeDuration(path: string): Promise<number | undefined> {

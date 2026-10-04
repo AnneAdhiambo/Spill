@@ -1,0 +1,54 @@
+# Run with docker-compose.dev.yml to host the API and worker in Linux containers.
+# This also works from Windows PowerShell without WSL, pnpm or FFmpeg on the host.
+x-radio-runtime: &radio-runtime
+  image: spill-radio-local
+  build:
+    context: .
+    dockerfile: infrastructure/docker/Dockerfile.local
+  env_file: .env
+  environment: &radio-environment
+    DATABASE_URL: postgresql://${POSTGRES_USER:-blocktek_radio}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-blocktek_radio}
+    REDIS_URL: redis://redis:6379
+    MEDIA_ROOT: /workspace/media
+    FALLBACK_AUDIO_PATH: /workspace/media/fallback
+    ICECAST_HOST: icecast
+    ICECAST_PORT: 8000
+  volumes:
+    - ./media:/workspace/media
+
+services:
+  migrate:
+    <<: *radio-runtime
+    command: ["pnpm", "db:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+  api:
+    <<: *radio-runtime
+    environment:
+      <<: *radio-environment
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+    ports:
+      - "${SPILL_BIND_ADDR:-127.0.0.1}:${API_PORT:-4000}:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  worker:
+    <<: *radio-runtime
+    command: ["pnpm", "--filter", "@blocktek/worker", "start"]
+    depends_on:
+      api:
+        condition: service_healthy
+      icecast:
+        condition: service_started
+    restart: unless-stopped

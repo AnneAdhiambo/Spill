@@ -21,9 +21,10 @@ import { unlink } from "node:fs/promises"
 import os from "node:os"
 import { randomUUID, createHash } from "node:crypto"
 import { mkdir, writeFile } from "node:fs/promises"
-import { dirname, isAbsolute, join, resolve } from "node:path"
+import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { transcribeFile, TranscribeError } from "../../shared/src/transcriber.js"
+import { audioStream, availableRecordings, recordingMediaRoot } from "./recordings.js"
 // Privacy flows (Midnight) removed. Use a minimal in-memory placeholder that
 // satisfies the small subset of methods the server expects during Phase 2.
 type PrivacyActor = { id: string; role: "CONTRIBUTOR" | "EDITOR" | "ADMIN" }
@@ -141,7 +142,7 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     return Promise.all(channels.map(async (channel) => ({ ...channel, stream: await checkedStream(channel.stream) })))
   }
 
-  app.register(cors, { origin: [config.WEB_BASE_URL, ...config.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)] })
+  app.register(cors, { origin: [config.WEB_BASE_URL, ...(config.CORS_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean)] })
   // multipart support for file uploads (transcription)
   app.register(multipart, { limits: { fileSize: 15 * 1024 * 1024 } })
 
@@ -316,8 +317,26 @@ export function buildServer(config: ApiConfig = loadConfig(), dependencies: Serv
     } })
   })
 
+  const recordingsRoot = recordingMediaRoot(config.MEDIA_ROOT || "./media", RADIO_ROOT)
+  app.get("/api/v1/radio/recordings", async () => ({
+    data: (await availableRecordings(recordingsRoot)).map(({ id, title, space, durationSec }) => ({
+      id, title, space, durationSec,
+    })),
+  }))
+  app.get("/api/v1/radio/recordings/:id/audio", async (request, reply) => {
+    const { id } = request.params as { id: string }
+    if (!/^rec-[a-f0-9]{12}$/.test(id)) return reply.code(404).send({ error: "NOT_FOUND" })
+    const recording = (await availableRecordings(recordingsRoot)).find((item) => item.id === id)
+    if (!recording) return reply.code(404).send({ error: "NOT_FOUND" })
+    const audio = audioStream(recording, request.headers.range)
+    if (!audio) return reply.code(416).header("content-range", `bytes */${recording.size}`).send({ error: "RANGE_NOT_SATISFIABLE" })
+    reply.code(audio.status).type(recording.contentType).header("cache-control", "private, no-store")
+    for (const [name, value] of Object.entries(audio.headers)) reply.header(name, value)
+    return reply.send(audio.stream)
+  })
+
   // ---- Media store: cleaned photos only, stored by SHA-256 and served at /media/<sha256>. ----
-  const uploadsDir = isAbsolute(config.MEDIA_ROOT) ? join(config.MEDIA_ROOT, "uploads") : join(RADIO_ROOT, config.MEDIA_ROOT, "uploads")
+  const uploadsDir = join(recordingsRoot, "uploads")
   const MEDIA_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }
   const mediaHits = new Map<string, number[]>()
   app.post("/api/v1/media", async (request, reply) => {

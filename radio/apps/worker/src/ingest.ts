@@ -3,7 +3,7 @@ import { join, extname } from "node:path"
 import { validateNpub } from "../../shared/src/npub.js"
 import { probeDurationSec, sha256File, transcribeFile, TranscribeError, type Transcript } from "../../shared/src/transcriber.js"
 
-export const RADIO_AUDIO_EXTENSIONS = new Set([".mp3", ".m4a", ".wav", ".ogg", ".webm", ".aac"])
+export const RADIO_AUDIO_EXTENSIONS = new Set([".mp3", ".mpeg", ".m4a", ".wav", ".ogg", ".webm", ".aac"])
 const TEMPLATE = [{ file: "example.mp3", title: "Example title", npub: "npub1...", space: "optional" }]
 
 export type Recording = { id: string; title: string; npub: string; space: string | null; path: string; durationSec: number | null; language: string | null; audioSha256: string; excerpt: string }

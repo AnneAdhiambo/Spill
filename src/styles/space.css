@@ -211,10 +211,22 @@
 .chat-input-wrap input { flex:1; min-width:0; height:100%; padding:0 15px; border:0; outline:0; background:transparent; color:#fff; }
 .chat-input-wrap button { width:48px; height:100%; border:0; background:transparent; color:#97a0ae; display:grid; place-items:center; }
 
-.recordings-empty { margin-top:12px; padding:52px 28px; border:1px solid var(--border); border-radius:18px; background:#10100f; }
-.recordings-empty span { color:#ff5d2a; font-weight:900; letter-spacing:.2em; font-size:12px; }
-.recordings-empty h2 { margin:8px 0 4px; font-size:30px; }
-.recordings-empty p { margin:0; color:#abb2bd; }
+.recordings-section { margin-top:12px; padding:28px; border:1px solid var(--border); border-radius:18px; background:#10100f; }
+.recordings-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.recordings-heading h2 { margin:6px 0 5px; font-size:31px; }
+.recordings-heading p, .recordings-message { margin:0; color:#abb2bd; font-size:14px; line-height:1.5; }
+.recordings-refresh { display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--border); border-radius:10px; color:#f7f4ef; background:transparent; font-size:13px; font-weight:700; }
+.recordings-refresh:hover { border-color:#ff7418; }
+.recordings-message { margin-top:27px; }
+.recordings-list { display:grid; gap:12px; margin-top:24px; }
+.recording-item { display:grid; grid-template-columns:48px minmax(0,1fr); gap:15px; padding:17px; border:1px solid var(--border); border-radius:14px; background:#191817; }
+.recording-icon { display:grid; place-items:center; width:48px; height:48px; border-radius:12px; color:#ff8b4c; background:#ff74181c; }
+.recording-content { min-width:0; }
+.recording-title-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.recording-title-row h3 { margin:0; font-size:17px; overflow-wrap:anywhere; }
+.recording-title-row time { flex:none; color:#abb2bd; font-size:12px; }
+.recording-content p { margin:5px 0 13px; color:#abb2bd; font-size:13px; }
+.recording-content audio { display:block; width:100%; height:36px; }
 .mobile-inline-panel { display:block; max-width:760px; }
 
 @media (max-width: 1260px) {
@@ -254,6 +266,10 @@
   .upcoming-room { grid-template-columns:56px 1fr; padding:14px 0; }
   .upcoming-icon { width:56px; height:56px; }
   .upcoming-room button { grid-column:2; width:max-content; }
+  .recordings-section { padding:19px 15px; }
+  .recording-item { grid-template-columns:1fr; }
+  .recording-icon { display:none; }
+  .recordings-refresh { padding:8px; font-size:0; }
 }
 
 :root[data-theme="light"] .space-page {
@@ -292,7 +308,8 @@
 :root[data-theme="light"] .side-card-heading h2,
 :root[data-theme="light"] .upcoming-copy h3,
 :root[data-theme="light"] .chat-heading h2,
-:root[data-theme="light"] .recordings-empty h2,
+:root[data-theme="light"] .recordings-heading h2,
+:root[data-theme="light"] .recording-title-row h3,
 :root[data-theme="light"] .host-row strong,
 :root[data-theme="light"] .speaker-item strong {
   color: #171717;
@@ -305,17 +322,21 @@
 :root[data-theme="light"] .side-card-heading p,
 :root[data-theme="light"] .upcoming-copy p,
 :root[data-theme="light"] .chat-message p,
-:root[data-theme="light"] .recordings-empty p {
+:root[data-theme="light"] .recordings-heading p,
+:root[data-theme="light"] .recordings-message,
+:root[data-theme="light"] .recording-content p {
   color: #615a54;
 }
 
 :root[data-theme="light"] .live-room-card,
 :root[data-theme="light"] .participants-card,
 :root[data-theme="light"] .side-card,
-:root[data-theme="light"] .recordings-empty {
+:root[data-theme="light"] .recordings-section,
+:root[data-theme="light"] .recording-item {
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 7px 24px rgba(59, 38, 24, 0.06);
 }
+:root[data-theme="light"] .recordings-refresh { color:#171717; }
 
 :root[data-theme="light"] .create-space-panel {
   background: rgba(255, 255, 255, 0.9);
