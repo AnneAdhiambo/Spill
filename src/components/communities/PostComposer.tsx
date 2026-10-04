@@ -12,6 +12,7 @@ export default function PostComposer({ communityId, onPostPublished }: PostCompo
   const [content, setContent] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [passcode, setPasscode] = useState("");
   const [showPasscode, setShowPasscode] = useState(false);
   const [attachment, setAttachment] = useState<{ imageUrl: string; imageAlt: string } | null>(null);
@@ -36,9 +37,10 @@ export default function PostComposer({ communityId, onPostPublished }: PostCompo
 
     setIsPublishing(true);
     setError(null);
+    setNotice(null);
 
     try {
-      await communityService.createPost(
+      const { synced } = await communityService.createPost(
         communityId,
         content,
         passcode,
@@ -49,6 +51,7 @@ export default function PostComposer({ communityId, onPostPublished }: PostCompo
       setShowPasscode(false);
       setAttachment(null);
       setIsSensitive(false);
+      setNotice(synced ? "Posted." : "Post saved on this device. It will sync when you're back online.");
       onPostPublished();
     } catch (err: any) {
       setError(err.message || "Failed to publish post. Please check your passcode and try again.");
@@ -147,6 +150,7 @@ export default function PostComposer({ communityId, onPostPublished }: PostCompo
       )}
 
       {error && <p className="error-message">{error}</p>}
+      {notice && <p className="composer-notice" role="status">{notice}</p>}
       
       <div className="composer-actions">
         <span className="character-count">
@@ -157,7 +161,7 @@ export default function PostComposer({ communityId, onPostPublished }: PostCompo
           className="primary-button"
           disabled={!content.trim() || isPublishing}
         >
-          {isPublishing ? "Publishing..." : showPasscode ? "Confirm & Publish" : "Publish"}
+          {isPublishing ? "Saving..." : showPasscode ? "Confirm & Publish" : "Publish"}
         </button>
       </div>
     </form>

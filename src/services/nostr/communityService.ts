@@ -1,5 +1,4 @@
-import { SimplePool, finalizeEvent } from "nostr-tools";
-import type { Event, Filter } from "nostr-tools";
+import { finalizeEvent } from "nostr-tools";
 import { unlockIdentity, hasStoredIdentity } from "../../features/identity/keys";
 import {
   communities as mockCommunities,
@@ -7,6 +6,8 @@ import {
   type ReportItem,
   type SensitiveReason,
 } from "../../data/communityReports";
+import { createEventOperation, getCacheEntriesByScope, syncEngine } from "../sync";
+import { communityTags } from "./communityTags";
 
 export type Community = {
   id: string;
@@ -36,11 +37,11 @@ export type PostAttachment = {
   sensitiveReason?: SensitiveReason;
 };
 
-const RELAYS = ["wss://relay.damus.io", "wss://relay.nostr.band"];
-const pool = new SimplePool();
-
-// Dummy admin pubkey for addressable tags
-const DUMMY_ADMIN_PUBKEY = "0000000000000000000000000000000000000000000000000000000000000000";
+export type CreatePostResult = {
+  post: CommunityPost;
+  /** True only once a relay has confirmed the event; otherwise it is queued on this device. */
+  synced: boolean;
+};
 
 class CommunityService {
   private readonly localPostsKey = "spill.community-posts";
@@ -69,16 +70,15 @@ class CommunityService {
     const event = finalizeEvent({
       kind: 9021,
       created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ["a", `39000:${DUMMY_ADMIN_PUBKEY}:${communityId}`],
-        ["h", communityId]
-      ],
+      tags: communityTags(communityId),
       content: "",
     }, sk);
 
-    await Promise.any(pool.publish(RELAYS, event));
-    
-    // Save to localStorage
+    // Joined locally right away; the signed event is published by the sync
+    // engine now or once the device is back online.
+    const queued = await syncEngine.enqueue(createEventOperation("community_join", communityId, event));
+    if (!queued.accepted && !queued.duplicate) throw new Error(queued.reason);
+
     const joined = this.getJoinedCommunities();
     if (!joined.includes(communityId)) {
       joined.push(communityId);
@@ -92,29 +92,19 @@ class CommunityService {
   }
 
   async getPosts(communityId: string): Promise<(CommunityPost | ReportItem)[]> {
-    const filter: Filter = {
-      kinds: [1],
-      "#a": [`39000:${DUMMY_ADMIN_PUBKEY}:${communityId}`],
-      limit: 50,
-    };
-
-    let events: Event[] = [];
+    // Fetch changes since the last pull into the offline cache, then read the
+    // cache — so the feed looks the same online and offline.
+    syncEngine.watchScope(communityId);
+    let remotePosts: CommunityPost[] = [];
     try {
-      events = await pool.querySync(RELAYS, filter);
+      await syncEngine.pull(communityId);
+      remotePosts = (await getCacheEntriesByScope(communityId))
+        .filter((entry) => entry.entityType === "community_post")
+        .map((entry) => entry.data as unknown as CommunityPost)
+        .sort((a, b) => b.createdAt - a.createdAt);
     } catch (err) {
-      console.warn("Relay query failed", err);
+      console.warn("Offline cache unavailable", err);
     }
-
-    const remotePosts = events
-        .sort((a, b) => b.created_at - a.created_at)
-        .map((ev) => ({
-          id: ev.id,
-          content: ev.content,
-          pubkey: ev.pubkey,
-          createdAt: ev.created_at,
-          likes: 0,
-          comments: 0,
-        }));
 
     const localPosts = this.getLocalPosts(communityId);
     const localPostsById = new Map(localPosts.map((post) => [post.id, post]));
@@ -140,7 +130,7 @@ class CommunityService {
     content: string,
     passcode: string,
     attachment?: PostAttachment,
-  ): Promise<CommunityPost> {
+  ): Promise<CreatePostResult> {
     if (!hasStoredIdentity()) throw new Error("Please sign in first.");
     
     const { privateKeyHex, npub } = await unlockIdentity(passcode);
@@ -149,18 +139,9 @@ class CommunityService {
     const event = finalizeEvent({
       kind: 1,
       created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ["a", `39000:${DUMMY_ADMIN_PUBKEY}:${communityId}`],
-        ["h", communityId]
-      ],
+      tags: communityTags(communityId),
       content,
     }, sk);
-
-    try {
-      await Promise.any(pool.publish(RELAYS, event));
-    } catch (error) {
-      console.warn("Post could not reach a relay and was saved locally instead.", error);
-    }
 
     const post: CommunityPost = {
       id: event.id,
@@ -174,7 +155,15 @@ class CommunityService {
     };
 
     this.saveLocalPost(communityId, post);
-    return post;
+
+    // Queue the signed event, then try to deliver it immediately. The event
+    // is never re-signed, so its id and signature survive every retry.
+    const operation = createEventOperation("community_post", communityId, event);
+    const queued = await syncEngine.enqueue(operation);
+    if (!queued.accepted && !queued.duplicate) throw new Error(queued.reason);
+
+    const status = await syncEngine.syncNow(operation.operationId);
+    return { post, synced: status === "synced" };
   }
 
   private getLocalPosts(communityId: string): CommunityPost[] {

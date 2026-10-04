@@ -173,6 +173,7 @@ For local development, create a `.env.local` file in the root:
 
 - [Radio workspace README](./radio/README.md)
 - [Media management guide](./radio/media/README.md)
+- [Offline support and nearby (Bluetooth) sync](./docs/offline-sync.md)
 
 ---
 
