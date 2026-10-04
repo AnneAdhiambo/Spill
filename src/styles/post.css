@@ -28,3 +28,7 @@
 .post-modal-actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; margin-top: 16px; }
 .post-modal-actions button:not(.post-submit) { background: none; border: 1px solid var(--line, rgba(255,255,255,.3)); color: inherit; border-radius: 12px; padding: 11px 20px; font-weight: 700; cursor: pointer; }
 .post-modal-actions .post-submit { margin-top: 0; }
+.post-add-photo.is-disabled { opacity: .5; cursor: not-allowed; }
+.post-sensitive { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.post-relays { list-style: none; padding: 0; margin: 0; font-size: 13.5px; text-align: left; }
+.post-copy { display: inline-flex; gap: 4px; align-items: center; background: none; border: 1px solid var(--line, rgba(255,255,255,.3)); color: inherit; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12.5px; }
