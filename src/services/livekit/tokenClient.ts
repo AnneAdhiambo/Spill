@@ -1,3 +1,6 @@
+import { finalizeEvent } from "nostr-tools";
+import { unlockIdentity } from "../../features/identity/keys";
+
 export type LiveKitRole = "host" | "listener";
 
 export type LiveKitSession = {
@@ -10,14 +13,29 @@ export type LiveKitSession = {
 
 const tokenEndpoint = import.meta.env.VITE_LIVEKIT_TOKEN_ENDPOINT ?? "http://localhost:3001/api/livekit/token";
 
-export async function requestLiveKitToken(roomName: string, role: LiveKitRole): Promise<LiveKitSession> {
+function hexToBytes(hex: string) {
+  return new Uint8Array(hex.match(/.{1,2}/g)?.map((value) => Number.parseInt(value, 16)) ?? []);
+}
+
+export async function requestLiveKitToken(roomName: string, role: LiveKitRole, passcode: string): Promise<LiveKitSession> {
   let response: Response;
 
   try {
+    const challengeEndpoint = new URL("/api/livekit/challenge", tokenEndpoint);
+    const challengeResponse = await fetch(challengeEndpoint, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roomName, role }),
+    });
+    const challengePayload = await challengeResponse.json() as { challenge?: string; error?: string };
+    if (!challengeResponse.ok || !challengePayload.challenge) throw new Error(challengePayload.error ?? "Unable to start signed authentication.");
+    const { privateKeyHex } = await unlockIdentity(passcode);
+    const authEvent = finalizeEvent({
+      kind: 27235, created_at: Math.floor(Date.now() / 1000), content: "",
+      tags: [["u", tokenEndpoint], ["method", "POST"], ["challenge", challengePayload.challenge]],
+    }, hexToBytes(privateKeyHex));
     response = await fetch(tokenEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomName, role }),
+      body: JSON.stringify({ roomName, role, authEvent }),
     });
   } catch {
     throw new Error("Cannot reach the LiveKit token service. Run npm run dev:token in a second terminal.");

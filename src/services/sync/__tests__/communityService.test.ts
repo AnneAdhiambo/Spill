@@ -2,18 +2,23 @@ import "fake-indexeddb/auto";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { FakeRelayTransport } from "./helpers";
 
-// Minimal localStorage for the existing identity/post storage.
+// Minimal localStorage/sessionStorage for the existing identity/post storage.
+function memoryStorage(store: Map<string, string>): Storage {
+  return {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, String(v)),
+    removeItem: (k: string) => void store.delete(k),
+    clear: () => store.clear(),
+    key: (i: number) => [...store.keys()][i] ?? null,
+    get length() {
+      return store.size;
+    },
+  };
+}
 const store = new Map<string, string>();
-globalThis.localStorage = {
-  getItem: (k: string) => store.get(k) ?? null,
-  setItem: (k: string, v: string) => void store.set(k, String(v)),
-  removeItem: (k: string) => void store.delete(k),
-  clear: () => store.clear(),
-  key: (i: number) => [...store.keys()][i] ?? null,
-  get length() {
-    return store.size;
-  },
-} as Storage;
+const sessionStore = new Map<string, string>();
+globalThis.localStorage = memoryStorage(store);
+globalThis.sessionStorage = memoryStorage(sessionStore);
 
 const { createIdentity, saveIdentity } = await import("../../../features/identity/keys");
 const { communityService } = await import("../../nostr/communityService");
@@ -29,6 +34,7 @@ beforeAll(() => {
 beforeEach(async () => {
   await resetOfflineDb();
   store.clear();
+  sessionStore.clear();
   saveIdentity(createIdentity());
   relay.available = true;
   relay.mode = "ok";

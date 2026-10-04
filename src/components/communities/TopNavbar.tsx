@@ -1,7 +1,10 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, WalletCards } from "lucide-react"
+import { useState } from "react"
 import { useTheme } from "../../hooks/useTheme"
 import { useIdentitySession } from "../../hooks/useIdentitySession"
 import SyncStatusIndicator from "../../features/offline/SyncStatusIndicator"
+import { useWallet } from "../../hooks/useWallet"
+import WalletModal from "../wallet/WalletModal"
 
 const links = [
   { label: "Home", href: "/" },
@@ -14,6 +17,8 @@ const links = [
 export default function TopNavbar() {
   const { theme, toggleTheme } = useTheme()
   const { isSignedIn, signOut } = useIdentitySession()
+  const wallet = useWallet()
+  const [isWalletOpen, setIsWalletOpen] = useState(false)
   const isDark = theme === "dark"
 
   return (
@@ -45,6 +50,7 @@ export default function TopNavbar() {
         >
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
+
         <button
           className="nav-button secondary"
           type="button"
@@ -56,8 +62,18 @@ export default function TopNavbar() {
           aria-label="Install Spill App"
           style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
         >
-          <Moon size={18} style={{ display: "none" }} />
           <span>Install App</span>
+        </button>
+
+        <button
+          className="nav-button secondary"
+          type="button"
+          onClick={() => setIsWalletOpen(true)}
+          aria-label="Open Cashu wallet"
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+        >
+          <WalletCards size={18} />
+          <span>{wallet.isUnlocked ? `${wallet.balance} sats` : "Wallet"}</span>
         </button>
 
         {isSignedIn ? (
@@ -68,6 +84,8 @@ export default function TopNavbar() {
             <button className="nav-button primary" type="button" onClick={() => { window.location.pathname = "/get-started" }}>Get Started</button>
           </>
         )}
+
+        {isWalletOpen && <WalletModal onClose={() => setIsWalletOpen(false)} />}
       </div>
     </header>
   )
