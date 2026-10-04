@@ -18,6 +18,13 @@ export function AppRouter() {
     return null;
   }
 
+  // Posting signs with the session identity, so it needs a session; come back to /post afterwards.
+  if (path === "/post" && !hasActiveIdentitySession()) {
+    const next = encodeURIComponent(path + window.location.search);
+    window.location.replace(`/get-started?next=${next}`);
+    return null;
+  }
+
   if (path === "/communities") {
     return <CommunitiesPage />;
   }

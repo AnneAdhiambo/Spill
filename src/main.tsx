@@ -4,6 +4,7 @@ import { Buffer } from "buffer";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
+import { startOutbox } from "./features/post/directPublish";
 import "./styles/globals.css";
 import "./styles/landing.css";
 
@@ -12,6 +13,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <App />
   </React.StrictMode>,
 );
+
+startOutbox();
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
