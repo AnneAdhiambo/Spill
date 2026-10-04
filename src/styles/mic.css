@@ -1,0 +1,16 @@
+.mic-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 4px 0 8px; }
+.mic-btn { position: relative; width: 96px; height: 96px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: inherit; background: rgba(127,127,127,.12); box-shadow: 0 0 0 6px rgba(255,122,26,.12); }
+.mic-btn:disabled { opacity: .5; cursor: not-allowed; }
+.mic-btn.is-recording { background: linear-gradient(135deg, #ff2d2d, #ff7a1a); color: #fff; box-shadow: none; }
+.mic-ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(255,122,26,.7); pointer-events: none; will-change: transform, opacity; }
+.mic-ring-1 { transform: scale(calc(1.1 + var(--level, 0) * 0.7)); opacity: calc(.9 - var(--level, 0) * .3); transition: transform 80ms linear; }
+.mic-ring-2 { transform: scale(calc(1.25 + var(--level, 0) * 1.1)); opacity: calc(.55 - var(--level, 0) * .3); transition: transform 80ms linear; }
+.mic-timer { font-variant-numeric: tabular-nums; font-weight: 700; }
+.mic-status { margin: 0; color: var(--muted, #aaa39d); font-size: 14px; }
+.mic-level-bar { display: none; width: 160px; height: 8px; border-radius: 999px; background: rgba(127,127,127,.25); overflow: hidden; }
+.mic-level-bar span { display: block; height: 100%; background: #ff7a1a; }
+@media (prefers-reduced-motion: reduce) {
+  .mic-ring { transform: scale(1.15) !important; opacity: .7 !important; transition: none; }
+  .mic-ring-2 { display: none; }
+  .mic-level-bar { display: block; }
+}

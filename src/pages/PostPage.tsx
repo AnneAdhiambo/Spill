@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Camera, CheckCircle2, Copy, ImageOff, Loader2, Mic, Square, X } from "lucide-react"
+import { Camera, CheckCircle2, Copy, ImageOff, X } from "lucide-react"
 import { nip19 } from "nostr-tools"
 import TopNavbar from "../components/communities/TopNavbar"
 import PostSyncBadge from "../features/offline/PostSyncBadge"
@@ -9,11 +9,11 @@ import { submitPost, type SubmitOutcome } from "../features/post/submitPost"
 import { useOnline } from "../features/post/useOnline"
 import { SessionSigner } from "../features/post/signer"
 import { useDictation } from "../features/post/useDictation"
+import DictationMic from "../features/post/DictationMic"
 import { communityService } from "../services/nostr/communityService"
 import "../styles/communities.css"
 import "../styles/post.css"
 
-const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
 const signer = new SessionSigner()
 
 export default function PostPage() {
@@ -125,21 +125,13 @@ export default function PostPage() {
             <h1>Write a post</h1>
             {community ? <p className="post-community">Posting in <strong>{communityName ?? community}</strong></p> : <p className="post-error" role="alert">Choose a community first. <a className="post-link" href="/communities">Go to Communities</a></p>}
 
+            <DictationMic state={dictation.state} seconds={dictation.seconds} level={dictation.level} online={online} onStart={dictation.start} onStop={dictation.stop} />
+
             <label className="post-label" htmlFor="post-text">What’s happening?</label>
             <textarea id="post-text" value={text} maxLength={MAX_POST_CHARS} rows={7} disabled={dictation.state === "transcribing"}
               onChange={(e) => setText(e.target.value)} placeholder="Type here, or tap the microphone to speak." />
             <div className="post-row">
-              <div className="post-dictate">
-                {dictation.state === "idle" && (
-                  <button type="button" className="post-mic" onClick={dictation.start} disabled={!online} aria-label="Start dictation"><Mic size={18} aria-hidden="true" /> Dictate{!online && " · Needs a connection"}</button>
-                )}
-                {dictation.state === "recording" && (
-                  <button type="button" className="post-mic is-recording" onClick={dictation.stop} aria-label="Stop dictation">
-                    <span className="post-dot" aria-hidden="true" /> <Square size={14} fill="currentColor" aria-hidden="true" /> {fmt(dictation.seconds)} / 2:00
-                  </button>
-                )}
-                {dictation.state === "transcribing" && <span className="post-muted"><Loader2 className="spin" size={16} aria-hidden="true" /> Transcribing…</span>}
-              </div>
+              <span />
               <span className="post-muted" aria-live="polite">{text.length} / {MAX_POST_CHARS}</span>
             </div>
             {dictated && <p className="post-muted">Transcribed automatically. Check it before you post, especially Swahili and Sheng.</p>}
