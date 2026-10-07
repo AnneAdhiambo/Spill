@@ -41,16 +41,16 @@ function usePhotoStatus(src: string | null): "loading" | "ok" | "error" {
   return status;
 }
 
-function PostPhoto({ src, sensitiveReason }: { src: string; sensitiveReason: string | null }) {
+function PostPhoto({ src, sensitiveReason, alt }: { src: string; sensitiveReason: string | null; alt: string }) {
   const status = usePhotoStatus(src);
   if (status === "error") {
     return <div className="pc-photo-missing" role="img" aria-label="Photo unavailable"><ImageOff size={22} aria-hidden="true" /><span>Photo unavailable</span></div>;
   }
   if (status === "loading") return <div className="pc-photo-missing pc-photo-loading" aria-busy="true" />;
   return sensitiveReason ? (
-    <SensitiveMedia src={src} alt="Photo attached to this post" reason={sensitiveReason as SensitiveReason} />
+    <SensitiveMedia src={src} alt={alt} reason={sensitiveReason as SensitiveReason} />
   ) : (
-    <img className="report-image" src={src} alt="Photo attached to this post" loading="lazy" />
+    <img className="report-image" src={src} alt={alt} loading="lazy" />
   );
 }
 
@@ -99,10 +99,10 @@ export default function PostCard({ post, community, communityIndex, showCommunit
   const hasCommunity = showCommunity && post.communityId && community;
 
   return (
-    <article className={`report-card pc-card${photoSrc ? "" : " report-card--text-only"}`}>
+    <article className={`report-card pc-card${photoSrc ? "" : " report-card--text-only"}${post.id === "demo-01" ? " pc-card--instagram" : ""}`}>
       {photoSrc && (
         <div className="report-image-wrap post-photo-wrap">
-          <PostPhoto src={photoSrc} sensitiveReason={post.sensitiveReason} />
+          <PostPhoto src={photoSrc} sensitiveReason={post.sensitiveReason} alt={post.photoAlt ?? "Photo attached to this post"} />
         </div>
       )}
       <div className="report-body">

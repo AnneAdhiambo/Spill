@@ -7,13 +7,28 @@ import type { FeedPost } from "./feedEvent"
  */
 export const DEMO_COMMUNITY_ID = "group-2" // Independent Journalism
 
+/** Featured Youth Voices card shown at the top of the all-posts feed. */
+export const FEATURED_POST: FeedPost = {
+  id: "demo-one-term-delayed",
+  pubkey: "",
+  createdAt: Math.floor(Date.now() / 1000),
+  text: "Wantam delayed is not one term denied.",
+  communityId: "group-4", // Youth Voices
+  photoSha256: null,
+  photoSrc: "/demo-posts/wantam-delayed.jpeg",
+  photoAlt: "Protesters holding a sign that reads Wantam delayed is not one term denied",
+  sensitiveReason: null,
+  onRelay: false,
+  isDemo: true,
+}
+
 const H = 3600
 const now = Math.floor(Date.now() / 1000)
 
 type Demo = { n: string; hoursAgo: number; text: string; sensitive?: "violence" | "death" }
 
 const DEMOS: Demo[] = [
-  { n: "01", hoursAgo: 1, text: "Seeing news that an activist was found alive after days missing. I'm relieved, but I want to hear it from the family and the organisation directly before I share more. Who has spoken to them?" },
+  { n: "01", hoursAgo: 1, text: "Activist Mulinge Muteti reportedly found after days missing." },
   { n: "02", hoursAgo: 3, text: "I was a few metres from this corner when the tear gas started. Everyone's eyes were burning and the smoke was so thick I lost my friends for ten minutes. I'm writing this from a shop where we sheltered." },
   { n: "03", hoursAgo: 5, text: "Two coffins were left in the middle of the road in town today. Nobody said a word, people just stood and watched. I don't have the names, so I'm only posting what I saw.", sensitive: "death" },
   { n: "04", hoursAgo: 6, text: "I helped carry this young man out of the crowd. He was bleeding badly and we ran to find a motorbike to take him to hospital. I don't know how he is now. Please tell me if you hear anything.", sensitive: "violence" },

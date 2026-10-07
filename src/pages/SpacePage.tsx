@@ -22,13 +22,11 @@ export default function SpacePage() {
   const [audioError, setAudioError] = useState<string | null>(null)
 
   async function joinAudio(roomName: string, role: LiveKitRole) {
-    const passcode = window.prompt("Enter your device passcode to authorize this room session.");
-    if (!passcode) return;
     setAudioError(null)
     setIsJoiningAudio(true)
 
     try {
-      setLiveKitSession(await requestLiveKitToken(roomName, role, passcode))
+      setLiveKitSession(await requestLiveKitToken(roomName, role))
     } catch (error) {
       setAudioError(error instanceof Error ? error.message : "Unable to join this Space.")
     } finally {

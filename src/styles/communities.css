@@ -66,9 +66,10 @@
 
 .communities-layout {
   width: min(1540px, calc(100% - 32px));
+  min-width: 760px;
   margin: 12px auto 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 404px;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 404px);
   gap: 22px;
   align-items: start;
 }
@@ -122,10 +123,10 @@
 
 .feed-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 22px; }
 .communities-page .report-card {
-  display: grid; grid-template-columns: 368px minmax(0, 1fr); gap: 18px; padding: 16px;
+  display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 18px; padding: 16px;
   background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.03);
 }
-.report-card--text-only {
+.communities-page .report-card--text-only {
   grid-template-columns: minmax(0, 1fr);
 }
 .report-image-wrap { min-width: 0; }
@@ -396,18 +397,15 @@
   font-weight: 500;
 }
 
-@media (max-width: 1280px) {
-  .communities-layout { grid-template-columns: 1fr; }
-  .community-sidebar { order: 2; }
-}
-
 @media (max-width: 920px) {
   .top-navbar { grid-template-columns: 160px 1fr; gap: 16px; }
   .navbar-links { display: none; }
   .navbar-actions { justify-self: end; }
   .navbar-actions .secondary { display: none; }
   .community-header h1 { font-size: 28px; }
-  .report-card { grid-template-columns: 1fr; }
+  .communities-page .report-card { grid-template-columns: minmax(0, 1fr); }
+  .community-list-item { flex-wrap: wrap; }
+  .community-sidebar-actions { margin-left: auto; }
 }
 
 @media (max-width: 680px) {

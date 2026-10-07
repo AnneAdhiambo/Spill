@@ -16,6 +16,8 @@ export type FeedPost = {
   onRelay: boolean
   /** Demo posts only: a local image path used instead of the media API. */
   photoSrc?: string
+  /** Accessible description for a local demo photo. */
+  photoAlt?: string
   /** Demo posts only: never published, never queued. */
   isDemo?: boolean
 }

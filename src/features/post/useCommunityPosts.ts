@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FEED_LIMIT, NOSTR_READ_RELAYS } from "./config"
-import { DEMO_COMMUNITY_ID, DEMO_POSTS } from "./demoPosts"
+import { DEMO_COMMUNITY_ID, DEMO_POSTS, FEATURED_POST } from "./demoPosts"
 import { mergePosts, parseCacheEntry, parsePostEvent, type FeedPost } from "./feedEvent"
 import { pool } from "./publish"
 import { communityAddress } from "../../services/nostr/communityTags"
@@ -36,7 +36,9 @@ export function useCommunityPosts(activeCommunityId: string | null, communityIds
       onevent(ev) {
         if (seen.has(ev.id)) return
         const post = parsePostEvent(ev, true)
-        if (!post) return
+        // Public relays can return unrelated notes that happen to use #spill.
+        // Only posts addressed to a Spill community belong in this feed.
+        if (!post?.communityId) return
         seen.set(ev.id, post)
         setRelayPosts([...seen.values()].sort((a, b) => b.createdAt - a.createdAt).slice(0, FEED_LIMIT))
       },
@@ -82,7 +84,9 @@ export function useCommunityPosts(activeCommunityId: string | null, communityIds
   // Demo posts are display-only: merged here, never signed, queued or published.
   const posts = useMemo(() => {
     const demo = !activeCommunityId || activeCommunityId === DEMO_COMMUNITY_ID ? DEMO_POSTS : []
-    return mergePosts(relayPosts, localPosts, demo)
+    const merged = mergePosts(relayPosts, localPosts, demo)
+    if (activeCommunityId && activeCommunityId !== FEATURED_POST.communityId) return merged
+    return [FEATURED_POST, ...merged.filter((post) => post.id !== FEATURED_POST.id)]
   }, [relayPosts, localPosts, activeCommunityId])
   return { posts, state, refreshLocal }
 }
